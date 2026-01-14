@@ -33,7 +33,7 @@ export function Logo({
     sm: "w-5 h-5 -top-2 -left-1.5 -rotate-12",
     md: "w-6 h-6 -top-3 -left-2 -rotate-12",
     lg: "w-8 h-8 -top-4 -left-2.5 -rotate-12",
-    xl: "w-10 h-10 md:w-14 md:h-14 -top-4 md:-top-6 -left-2 md:-left-3 -rotate-19",
+    xl: "w-10 h-10 md:w-14 md:h-14 -top-4 md:-top-6 -left-2 md:-left-3 -rotate-[19deg]",
   };
 
   const ChefHat = () => (
