@@ -25,8 +25,19 @@ export function ReadyToCookSection() {
   const router = useRouter();
   const [selectedTopic, setSelectedTopic] = useState(topicOptions[0]);
   const [isLoading, setIsLoading] = useState(false);
+  const [roomCode, setRoomCode] = useState("");
+  const [joinError, setJoinError] = useState("");
+  const [createError, setCreateError] = useState("");
+  const [createName, setCreateName] = useState("");
+  const [joinName, setJoinName] = useState("");
 
   const handleCreateRoom = async () => {
+    if (!createName.trim()) {
+      setCreateError("Please enter your name");
+      return;
+    }
+    
+    setCreateError("");
     setIsLoading(true);
     try {
       const response = await fetch("http://localhost:8080/api/debates", {
@@ -36,9 +47,40 @@ export function ReadyToCookSection() {
       });
 
       const debate = await response.json();
+      localStorage.setItem("visitorName", createName);
       router.push(`/debate/${debate.id}`);
     } catch (error) {
       console.error("Failed to create debate:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleJoinRoom = async () => {
+    if (!roomCode.trim()) {
+      setJoinError("Please enter a room code");
+      return;
+    }
+    if (!joinName.trim()) {
+      setJoinError("Please enter your name");
+      return;
+    }
+
+    setIsLoading(true);
+    setJoinError("");
+    try {
+      const response = await fetch(`http://localhost:8080/api/debates/${roomCode.toUpperCase()}`);
+
+      if (!response.ok) {
+        setJoinError("Room not found");
+        return;
+      }
+
+      localStorage.setItem("visitorName", joinName);
+      router.push(`/debate/${roomCode.toUpperCase()}`);
+    } catch (error) {
+      console.error("Failed to join debate:", error);
+      setJoinError("Failed to join room");
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +96,7 @@ export function ReadyToCookSection() {
       
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent pb-3">
             Ready to Cook?
           </h2>
           <div className="flex items-center justify-center gap-4 mt-2 mb-4">
@@ -67,9 +109,16 @@ export function ReadyToCookSection() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto -mt-4">
           <RecipeCard title="Create Room" variant="amber" stamp="📋">
             <div className="space-y-5">
+              <FormInput 
+                label="Your Name" 
+                placeholder="Enter your name" 
+                variant="amber"
+                value={createName}
+                onChange={setCreateName}
+              />
               <FormSelect  
                 label="Topic" 
                 options={topicOptions} 
@@ -77,6 +126,9 @@ export function ReadyToCookSection() {
                 value={selectedTopic}
                 onChange={setSelectedTopic}
               />
+              {createError && (
+                <p className="text-red-500 text-sm">{createError}</p>
+              )}
               <Button fullWidth onClick={handleCreateRoom}>
                 {isLoading ? "Creating..." : "Create Room"}
               </Button>
@@ -84,9 +136,26 @@ export function ReadyToCookSection() {
           </RecipeCard>
           <RecipeCard title="Join Room" variant="orange" stamp="🥄">
             <div className="space-y-5">
-              <FormInput label="Room Code" placeholder="Enter room code" variant="orange" />
-              <FormInput label="Your Name" placeholder="Enter your name" variant="orange" />
-              <Button fullWidth>Join Room</Button>
+              <FormInput 
+                label="Room Code" 
+                placeholder="e.g. A7K2" 
+                variant="orange"
+                value={roomCode}
+                onChange={setRoomCode}
+              />
+              <FormInput 
+                label="Your Name" 
+                placeholder="Enter your name" 
+                variant="orange"
+                value={joinName}
+                onChange={setJoinName}
+              />
+              {joinError && (
+                <p className="text-red-500 text-sm">{joinError}</p>
+              )}
+              <Button fullWidth onClick={handleJoinRoom}>
+                {isLoading ? "Joining..." : "Join Room"}
+              </Button>
             </div>
           </RecipeCard>
         </div>

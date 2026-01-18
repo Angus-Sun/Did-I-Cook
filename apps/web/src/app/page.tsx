@@ -6,7 +6,11 @@ import { HowItWorksSection, ReadyToCookSection } from "@/components/sections";
 
 export default function Home() {
   const handleStartClick = () => {
-    document.getElementById("ready-to-cook")?.scrollIntoView({ behavior: "smooth" });
+    const element = document.getElementById("ready-to-cook");
+    if (element) {
+      const y = element.getBoundingClientRect().top + window.pageYOffset + 50;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
   };
 
   return (

@@ -55,6 +55,7 @@ export function CookbookCard({ step, title, subtitle, ingredients, colorScheme }
             className={`h-full rounded-lg shadow-lg transition-all duration-300 flex flex-col overflow-hidden relative border-2 ${colors.border}`}
             style={{
               background: colors.gradient,
+              fontFamily: 'var(--font-caveat)',
             }}
           >
             <div 
@@ -64,19 +65,19 @@ export function CookbookCard({ step, title, subtitle, ingredients, colorScheme }
               }}
             />
             <div className="flex-1 flex flex-col items-center justify-center p-6 text-center relative z-10">
-              <p className={`${colors.textMuted} text-xs tracking-[0.2em] uppercase mb-2`}>Step {step}</p>
+              <p className={`${colors.textMuted} text-base tracking-[0.2em] uppercase mb-2`}>Step {step}</p>
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-8 h-px ${colors.divider}`} />
                 <div className={`w-1.5 h-1.5 rotate-45 ${colors.dividerDot}`} />
                 <div className={`w-8 h-px ${colors.divider}`} />
               </div>
-              <h3 className={`text-2xl font-bold ${colors.textMain} mb-1`}>
+              <h3 className={`text-3xl font-bold ${colors.textMain} mb-1`}>
                 {title}
               </h3>
-              <p className={`${colors.textSubtle} text-sm italic mt-2`}>{subtitle}</p>
+              <p className={`${colors.textSubtle} text-lg italic mt-2`}>{subtitle}</p>
             </div>
             <div className={`py-3 ${colors.banner} border-t`}>
-              <p className={`${colors.bannerText} text-s text-center tracking-wider`}>Hover to read</p>
+              <p className={`${colors.bannerText} text-base text-center tracking-wider`}>Hover to read</p>
             </div>
           </div>
         </div>  
@@ -85,16 +86,17 @@ export function CookbookCard({ step, title, subtitle, ingredients, colorScheme }
           <div 
             className="h-full rounded-lg bg-amber-50 border-2 border-amber-300 shadow-xl relative overflow-hidden"
             style={{
-              backgroundImage: `repeating-linear-gradient(transparent, transparent 27px, #d4c4a8 28px)`,
-              backgroundSize: '100% 28px',
+              backgroundImage: `repeating-linear-gradient(transparent, transparent 31px, #d4c4a8 32px)`,
+              backgroundSize: '100% 32px',
+              fontFamily: 'var(--font-caveat)',
             }}
           >
             <div className="absolute top-2 right-4 text-amber-300 text-4xl font-bold">{step}</div>
-            <div className="px-6 pt-[28px]">
-              <h4 className="text-lg font-bold text-amber-900 leading-[28px] mb-0">{title}</h4>
-              <ul className="text-amber-800 text-sm m-0 p-0">
+            <div className="px-6 pt-[32px]">
+              <h4 className="text-2xl font-bold text-amber-900 leading-[32px] mb-0">{title}</h4>
+              <ul className="text-amber-800 text-lg m-0 p-0">
                 {ingredients.map((item, index) => (
-                  <li key={index} className="flex gap-2 leading-[28px] list-none">
+                  <li key={index} className="flex gap-2 leading-[32px] list-none">
                     <span className="text-amber-600">•</span> {item}
                   </li>
                 ))}

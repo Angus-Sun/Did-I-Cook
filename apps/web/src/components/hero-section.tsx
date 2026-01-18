@@ -36,7 +36,7 @@ export function HeroSection({ onStartClick }: HeroSectionProps) {
         <FloatingFood
           delay={0.3}
           rotate={-5}
-          emoji="🍳"
+          image="/frying_pan.png"
           className="hidden sm:block left-[5%] top-[15%]"
         />
 
@@ -67,7 +67,7 @@ export function HeroSection({ onStartClick }: HeroSectionProps) {
             animate="visible"
           >
             <div className="max-w-2xl mx-auto px-2 sm:px-4 mb-6 sm:mb-8 space-y-4">
-              <div className="flex justify-end">
+              <div className="flex justify-end mr-[0px] sm:mr-[-50px] md:mr-[-80px]">
                 <div className="relative inline-block max-w-md">
                   <div className="bg-white rounded-2xl px-5 py-3 shadow-sm border border-gray-200">
                     <p className="text-sm sm:text-base md:text-lg text-gray-600 font-light">
@@ -113,34 +113,25 @@ export function HeroSection({ onStartClick }: HeroSectionProps) {
             variants={fadeUpVariants}
             initial="hidden"
             animate="visible"
-            className="mt-4 text-gray-500 text-sm"
+            className="mt-8 text-gray-500 text-sm"
           >
             Free to play. No sign-up required.
           </motion.p>
         </div>
       </div>
-      <motion.div
-        className="absolute bottom-8 left-0 right-0 mx-auto w-10 flex justify-center cursor-pointer"
-        onClick={scrollToNextSection}
-        initial={{ opacity: 0 }}
-        animate={{
-          opacity: 1,
-          y: [0, 10, 0],
-        }}
-        transition={{
-          delay: 2,
-          y: {
-            repeat: Infinity,
-            duration: 2,
-            ease: "easeInOut",
-          },
-        }}
-        whileHover={{ scale: 1.1 }}
-      >
-        <div className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center">
-          <ChevronDown className="w-6 h-6 text-orange-500" />
-        </div>
-      </motion.div>
+      
+      {/* People at podiums */}
+      <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+        <img 
+          src="/people.png" 
+          alt="" 
+          className="w-full max-w-7xl mx-auto h-auto object-contain"
+          style={{ 
+            maskImage: 'linear-gradient(to bottom, black 0%, black 80%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 80%, transparent 100%)'
+          }}
+        />
+      </div>
     </div>
   );
 }

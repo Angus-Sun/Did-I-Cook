@@ -26,14 +26,14 @@ export function Logo({
     sm: "text-2xl md:text-3xl",
     md: "text-3xl md:text-4xl",
     lg: "text-4xl md:text-5xl lg:text-6xl",
-    xl: "text-4xl sm:text-5xl md:text-7xl lg:text-8xl",
+    xl: "text-6xl sm:text-7xl md:text-8xl lg:text-9xl",
   };
 
   const hatSizes = {
     sm: "w-5 h-5 -top-2 -left-1.5 -rotate-12",
     md: "w-6 h-6 -top-3 -left-2 -rotate-12",
     lg: "w-8 h-8 -top-4 -left-2.5 -rotate-12",
-    xl: "w-10 h-10 md:w-14 md:h-14 -top-4 md:-top-6 -left-2 md:-left-3 -rotate-[19deg]",
+    xl: "w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 -top-5 sm:-top-6 md:-top-7 lg:-top-8 -left-2 sm:-left-3 md:-left-4 -rotate-[19deg]",
   };
 
   const ChefHat = () => (

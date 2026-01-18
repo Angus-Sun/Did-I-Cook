@@ -24,3 +24,17 @@ html {
   background: #f97316;
   color: white;
 }
+
+/* Scrolling background pattern animation */
+@keyframes scroll-pattern {
+  from {
+    background-position: 0px 0px;
+  }
+  to {
+    background-position: 120px 120px;
+  }
+}
+
+.animate-scroll-pattern {
+  animation: scroll-pattern 10s linear infinite;
+}

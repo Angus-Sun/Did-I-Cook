@@ -40,6 +40,25 @@ public class DebateController {
     public Turn addTurn(@PathVariable String id, @RequestBody Map<String, String> body) {
         String argument = body.get("argument");
         String visitorId = body.get("visitorId");
-        return debateService.addTurn(id, visitorId, argument);
+        String visitorName = body.get("visitorName");
+        return debateService.addTurn(id, visitorId, visitorName, argument);
+    }
+
+    @PostMapping("/{id}/join") 
+    public Debate joinDebate(@PathVariable String id, @RequestBody Map<String, String> body) {
+        String visitorId = body.get("visitorId");
+        String visitorName = body.get("visitorName");
+        return debateService.joinDebate(id, visitorId, visitorName);
+    }
+
+    @PostMapping("/{id}/ready")
+    public Debate setReady(@PathVariable String id, @RequestBody Map<String, String> body) {
+        String visitorId = body.get("visitorId");
+        return debateService.setReady(id, visitorId);
+    }
+
+    @PostMapping("/{id}/next-phase")
+    public Debate nextPhase(@PathVariable String id) {
+        return debateService.nextPhase(id);
     }
 }
