@@ -2,7 +2,6 @@ package com.didicook.api.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class Debate {
     private String id;
@@ -11,7 +10,7 @@ public class Debate {
     private List<Turn> turns;
 
     public Debate() {
-        this.id = UUID.randomUUID().toString();
+        this.id = generateRoomId();
         this.turns = new ArrayList<>();
         this.status = "waiting";
     }
@@ -19,6 +18,15 @@ public class Debate {
     public Debate(String topic) {
         this();
         this.topic = topic;
+    }
+    private String generateRoomId() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder sb = new StringBuilder();
+        java.util.Random random = new java.util.Random();
+        for (int i = 0; i < 4; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
     }
 
     public String getId() {return id;}

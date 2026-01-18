@@ -11,6 +11,8 @@ interface FormSelectProps {
   label: string;
   options: string[];
   variant?: "amber" | "orange";
+  value?: string;
+  onChange?: (value: string) => void;
 }
 
 const variants = {
@@ -41,16 +43,20 @@ export function FormInput({ label, placeholder, type = "text", variant = "amber"
   );
 }
 
-export function FormSelect({ label, options, variant = "amber" }: FormSelectProps) {
+export function FormSelect({ label, options, variant = "amber", value, onChange }: FormSelectProps) {
   const styles = variants[variant];
   return (
     <div>
       <label className={`block text-sm font-medium ${styles.label} mb-2`}>
         {label}
       </label>
-      <select className={`w-full px-4 py-3 rounded-lg border ${styles.border} bg-white text-gray-900 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all`}>
+      <select 
+        className={`w-full px-4 py-3 rounded-lg border ${styles.border} bg-white text-gray-900 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all`}
+        value={value}
+        onChange={(e) => onChange?.(e.target.value)}
+      >
         {options.map((option, index) => (
-          <option key={index}>{option}</option>
+          <option key={index} value={option}>{option}</option>
         ))}
       </select>
     </div>

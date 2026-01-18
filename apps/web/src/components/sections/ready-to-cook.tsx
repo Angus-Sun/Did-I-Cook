@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { 
   RecipeCard, 
   BackgroundPattern, 
@@ -11,13 +13,37 @@ import {
 } from "@/components/ui";
 
 const topicOptions = [
-  "Pineapple on pizza: yes or no?",
-  "Cats vs Dogs",
-  "Morning person vs Night owl",
-  "Random topic",
+  "Are Software Engineers Cooked? (AI)",
+  "Is a Hot Dog a Sandwich",
+  "How Many Holes in a Polo?",
+  "Which Is Better? Never Have to Sleep, Never Have to Eat, Never Have to Breathe",
+  "Are AI Generated Images Considered Art?",
+  "Random",
 ];
 
 export function ReadyToCookSection() {
+  const router = useRouter();
+  const [selectedTopic, setSelectedTopic] = useState(topicOptions[0]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleCreateRoom = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("http://localhost:8080/api/debates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json"},
+        body: JSON.stringify({ topic: selectedTopic }),
+      });
+
+      const debate = await response.json();
+      router.push(`/debate/${debate.id}`);
+    } catch (error) {
+      console.error("Failed to create debate:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <section 
       id="ready-to-cook" 
@@ -44,8 +70,16 @@ export function ReadyToCookSection() {
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           <RecipeCard title="Create Room" variant="amber" stamp="📋">
             <div className="space-y-5">
-              <FormSelect label="Topic" options={topicOptions} variant="amber" />
-              <Button fullWidth>Create Room</Button>
+              <FormSelect  
+                label="Topic" 
+                options={topicOptions} 
+                variant="amber" 
+                value={selectedTopic}
+                onChange={setSelectedTopic}
+              />
+              <Button fullWidth onClick={handleCreateRoom}>
+                {isLoading ? "Creating..." : "Create Room"}
+              </Button>
             </div>
           </RecipeCard>
           <RecipeCard title="Join Room" variant="orange" stamp="🥄">
