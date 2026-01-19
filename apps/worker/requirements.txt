@@ -1,0 +1,4 @@
+sentence-transformers
+opensearch-py
+tqdm
+
