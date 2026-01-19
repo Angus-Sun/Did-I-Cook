@@ -157,18 +157,18 @@ export function ReadyToCookSection() {
             <RecipeCard title="Join Room" variant="orange" stamp="🥄">
               <div className="space-y-5">
                 <FormInput 
-                  label="Room Code" 
-                  placeholder="e.g. A7K2" 
-                  variant="orange"
-                  value={roomCode}
-                  onChange={setRoomCode}
-                />
-                <FormInput 
                   label="Your Name" 
                   placeholder="Enter your name" 
                   variant="orange"
                   value={joinName}
                   onChange={setJoinName}
+                />
+                <FormInput 
+                  label="Room Code" 
+                  placeholder="e.g. A7K2" 
+                  variant="orange"
+                  value={roomCode}
+                  onChange={setRoomCode}
                 />
                 {joinError && (
                   <p className="text-red-500 text-sm">{joinError}</p>

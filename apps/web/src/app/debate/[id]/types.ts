@@ -24,16 +24,16 @@ export interface Debate {
 }
 
 export const PHASE_INFO = [
-  { name: "Prep Time", speaker: 0, duration: 5, isBuffer: true },
-  { name: "Opening Statement", speaker: 1, duration: 120, isBuffer: false },
-  { name: "Opening Statement", speaker: 2, duration: 120, isBuffer: false },
-  { name: "Prep Time", speaker: 0, duration: 5, isBuffer: true },
-  { name: "Argument", speaker: 1, duration: 120, isBuffer: false },
-  { name: "Argument", speaker: 2, duration: 120, isBuffer: false },
-  { name: "Closing Statement", speaker: 1, duration: 60, isBuffer: false },
-  { name: "Closing Statement", speaker: 2, duration: 60, isBuffer: false },
-  { name: "Brief Response", speaker: 1, duration: 30, isBuffer: false },
-  { name: "Brief Response", speaker: 2, duration: 30, isBuffer: false },
+  { type: "PREP", name: "Prep Time", speaker: null, duration: 5, isBuffer: true },
+  { type: "OPENING", name: "Opening Statement", speaker: 1, duration: 120, isBuffer: false },
+  { type: "OPENING", name: "Opening Statement", speaker: 2, duration: 120, isBuffer: false },
+  { type: "PREP", name: "Prep Time", speaker: null, duration: 5, isBuffer: true },
+  { type: "ARGUMENT", name: "Argument", speaker: 1, duration: 120, isBuffer: false },
+  { type: "ARGUMENT", name: "Argument", speaker: 2, duration: 120, isBuffer: false },
+  { type: "CLOSING", name: "Closing Statement", speaker: 1, duration: 60, isBuffer: false },
+  { type: "CLOSING", name: "Closing Statement", speaker: 2, duration: 60, isBuffer: false },
+  { type: "RESPONSE", name: "Brief Response", speaker: 1, duration: 30, isBuffer: false },
+  { type: "RESPONSE", name: "Brief Response", speaker: 2, duration: 30, isBuffer: false },
 ];
 
 // Speech Recognition types
