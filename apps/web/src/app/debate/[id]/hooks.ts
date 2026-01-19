@@ -129,7 +129,6 @@ export function useDebate(debateId: string): UseDebateResult {
   const [debate, setDebate] = useState<Debate | null>(null);
   const API_BASE = `http://localhost:8080/api/debates/${debateId}`;
 
-  // Poll for debate state
   useEffect(() => {
     const fetchDebate = async () => {
       try {
@@ -259,7 +258,6 @@ export function useTimer(debate: Debate | null, phaseDurations: number[]) {
   return timeLeft;
 }
 
-// WebRTC Hook for peer-to-peer video
 export function useWebRTC(debateId: string, visitorId: string, localStream: MediaStream | null) {
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -336,15 +334,13 @@ export function useWebRTC(debateId: string, visitorId: string, localStream: Medi
             const data = JSON.parse(message.body);
             console.log("User joined:", data);
   
-            // Only the user who just joined AND finds someone already here creates the offer
-            // This ensures only ONE side initiates the connection
             if (data.userId === visitorId && data.existingUsers > 0 && !hasCreatedOfferRef.current && isMounted) {
               hasCreatedOfferRef.current = true;
               offerTimeoutRef.current = setTimeout(() => {
                 if (isMounted && peerConnection.signalingState !== 'closed') {
                   createOffer(peerConnection, client, debateId, visitorId);
                 }
-              }, 500); // Small delay to ensure the other peer is ready
+              }, 500); 
             }
           });
 
