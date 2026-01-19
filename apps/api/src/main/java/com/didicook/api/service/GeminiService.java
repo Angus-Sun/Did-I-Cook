@@ -1,5 +1,8 @@
 package com.didicook.api.service;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -8,8 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Map;
-import java.util.List;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
@@ -33,6 +34,14 @@ public class GeminiService {
             return Map.of("error", "Invalid input format for phases", "details", e.getMessage());
         }
 
+        List<String> evidence = getEvidenceChunks(transcript.toString(), 5);
+        StringBuilder evidenceSection = new StringBuilder();
+        if (!evidence.isEmpty()) {
+            evidenceSection.append("\nRelevant evidence for this debate (use to support your scoring):\n");
+            for (String ev : evidence) {
+                evidenceSection.append("- ").append(ev.replace("\"", "'")).append("\n");
+            }
+        }
         String exampleJson = "{\n" +
             "  \"winner\": \"player1\",\n" +
             "  \"player1TotalScore\": 78,\n" +
@@ -82,7 +91,8 @@ public class GeminiService {
             "Replace round names with the actual round titles. " +
             "Be concise and fair. Return ONLY valid JSON, no markdown, no commentary, no code block formatting, no explanation, no triple backticks.\n\n" +
             exampleJson +
-            "\n\nDebate transcript:\n" + transcript.toString();
+            evidenceSection.toString() +
+            "\nDebate transcript:\n" + transcript.toString();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -108,5 +118,43 @@ public class GeminiService {
         } catch (Exception e) {
             return Map.of("error", "Failed to parse Gemini response", "details", e.getMessage());
         }
+    }
+
+    public List<String> getEvidenceChunks(String debateTurn, int topK) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8000/search";
+        ObjectMapper mapper = new ObjectMapper();
+        String requestJson = "";
+        try {
+            Map<String, Object> requestMap = Map.of(
+                "query", debateTurn,
+                "top_k", topK
+            );
+            requestJson = mapper.writeValueAsString(requestMap);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to build request JSON", e);
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> entity = new HttpEntity<>(requestJson, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+
+        List<String> evidence = new java.util.ArrayList<>();
+        if (response.getStatusCode() == org.springframework.http.HttpStatus.OK) {
+            try {
+                JsonNode body = mapper.readTree(response.getBody());
+                JsonNode results = body.get("results");
+                if (results != null && results.isArray()) {
+                    for (JsonNode chunk : results) {
+                        evidence.add(chunk.get("text").asText());
+                    }
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to parse response JSON", e);
+            }
+        }
+        return evidence;
     }
 }

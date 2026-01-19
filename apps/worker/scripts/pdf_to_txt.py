@@ -16,9 +16,7 @@ except ImportError:
     convert_from_path = None
     print("OCR dependencies not found. For OCR support, install with: pip install pytesseract pdf2image pillow")
 
-
 def extract_text_from_pdf(pdf_path):
-    """Try to extract text from a PDF using PyPDF2. Returns text or None if empty."""
     try:
         reader = PdfReader(pdf_path)
         text = "\n".join(page.extract_text() or "" for page in reader.pages)
@@ -28,7 +26,6 @@ def extract_text_from_pdf(pdf_path):
         return None
 
 def ocr_pdf(pdf_path):
-    """Fallback: Use OCR to extract text from each page image."""
     if not (pytesseract and convert_from_path):
         print(f"OCR not available for {pdf_path}. Skipping.")
         return None
