@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import { CookbookCard } from "@/components/ui";
 import { BackgroundPattern, FloatingDecorations } from "@/components/ui";
 
@@ -50,13 +52,21 @@ const steps = [
 ];
 
 export function HowItWorksSection() {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
   return (
     <section className="w-full py-20 bg-gradient-to-b from-amber-50/80 via-amber-50/50 to-white relative overflow-hidden">
       <BackgroundPattern imageUrl="/forkknife.png" />
       <FloatingDecorations decorations={howItWorksDecorations} />
       
-      <div className="container mx-auto px-4 md:px-6 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-16">
+      <div ref={ref} className="container mx-auto px-4 md:px-6 relative z-10">
+        <motion.div 
+          className="text-center max-w-3xl mx-auto mb-16"
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent pb-3">
             How It Works
           </h2>
@@ -65,11 +75,18 @@ export function HowItWorksSection() {
             <div className="w-2 h-2 rotate-45 bg-orange-400" />
             <div className="w-12 h-px bg-gradient-to-l from-transparent to-orange-400" />
           </div>
-        </div>
+        </motion.div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {steps.map((step) => (
-            <CookbookCard key={step.step} {...step} />
+          {steps.map((step, index) => (
+            <motion.div
+              key={step.step}
+              initial={{ opacity: 0, y: 50 }}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+              transition={{ duration: 0.6, delay: 0.2 + index * 0.15, ease: "easeOut" }}
+            >
+              <CookbookCard {...step} />
+            </motion.div>
           ))}
         </div>
       </div>

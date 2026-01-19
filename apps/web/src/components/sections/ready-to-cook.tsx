@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { motion, useInView } from "framer-motion";
 import { 
   RecipeCard, 
   BackgroundPattern, 
@@ -86,6 +87,9 @@ export function ReadyToCookSection() {
     }
   };
 
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
   return (
     <section 
       id="ready-to-cook" 
@@ -94,8 +98,13 @@ export function ReadyToCookSection() {
       <BackgroundPattern imageUrl="/forkknife.png" />
       <FloatingDecorations decorations={readyToCookDecorations} />
       
-      <div className="container mx-auto px-4 md:px-6 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-12">
+      <div ref={ref} className="container mx-auto px-4 md:px-6 relative z-10">
+        <motion.div 
+          className="text-center max-w-3xl mx-auto mb-12"
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent pb-3">
             Ready to Cook?
           </h2>
@@ -107,57 +116,69 @@ export function ReadyToCookSection() {
           <p className="text-lg text-gray-600">
             Start a new debate or join an existing one
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto -mt-4">
-          <RecipeCard title="Create Room" variant="amber" stamp="📋">
-            <div className="space-y-5">
-              <FormInput 
-                label="Your Name" 
-                placeholder="Enter your name" 
-                variant="amber"
-                value={createName}
-                onChange={setCreateName}
-              />
-              <FormSelect  
-                label="Topic" 
-                options={topicOptions} 
-                variant="amber" 
-                value={selectedTopic}
-                onChange={setSelectedTopic}
-              />
-              {createError && (
-                <p className="text-red-500 text-sm">{createError}</p>
-              )}
-              <Button fullWidth onClick={handleCreateRoom}>
-                {isLoading ? "Creating..." : "Create Room"}
-              </Button>
-            </div>
-          </RecipeCard>
-          <RecipeCard title="Join Room" variant="orange" stamp="🥄">
-            <div className="space-y-5">
-              <FormInput 
-                label="Room Code" 
-                placeholder="e.g. A7K2" 
-                variant="orange"
-                value={roomCode}
-                onChange={setRoomCode}
-              />
-              <FormInput 
-                label="Your Name" 
-                placeholder="Enter your name" 
-                variant="orange"
-                value={joinName}
-                onChange={setJoinName}
-              />
-              {joinError && (
-                <p className="text-red-500 text-sm">{joinError}</p>
-              )}
-              <Button fullWidth onClick={handleJoinRoom}>
-                {isLoading ? "Joining..." : "Join Room"}
-              </Button>
-            </div>
-          </RecipeCard>
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+          >
+            <RecipeCard title="Create Room" variant="amber" stamp="📋">
+              <div className="space-y-5">
+                <FormInput 
+                  label="Your Name" 
+                  placeholder="Enter your name" 
+                  variant="amber"
+                  value={createName}
+                  onChange={setCreateName}
+                />
+                <FormSelect  
+                  label="Topic" 
+                  options={topicOptions} 
+                  variant="amber" 
+                  value={selectedTopic}
+                  onChange={setSelectedTopic}
+                />
+                {createError && (
+                  <p className="text-red-500 text-sm">{createError}</p>
+                )}
+                <Button fullWidth onClick={handleCreateRoom}>
+                  {isLoading ? "Creating..." : "Create Room"}
+                </Button>
+              </div>
+            </RecipeCard>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+            transition={{ duration: 0.6, delay: 0.35, ease: "easeOut" }}
+          >
+            <RecipeCard title="Join Room" variant="orange" stamp="🥄">
+              <div className="space-y-5">
+                <FormInput 
+                  label="Room Code" 
+                  placeholder="e.g. A7K2" 
+                  variant="orange"
+                  value={roomCode}
+                  onChange={setRoomCode}
+                />
+                <FormInput 
+                  label="Your Name" 
+                  placeholder="Enter your name" 
+                  variant="orange"
+                  value={joinName}
+                  onChange={setJoinName}
+                />
+                {joinError && (
+                  <p className="text-red-500 text-sm">{joinError}</p>
+                )}
+                <Button fullWidth onClick={handleJoinRoom}>
+                  {isLoading ? "Joining..." : "Join Room"}
+                </Button>
+              </div>
+            </RecipeCard>
+          </motion.div>
         </div>
       </div>
     </section>
