@@ -59,16 +59,6 @@ export default function DebateRoom() {
   }, [visitorId]);
 
   useEffect(() => {
-    if (debate?.status === "in_progress") {
-      const hasRefreshed = sessionStorage.getItem(`debate-${debateId}-refreshed`);
-      if (!hasRefreshed) {
-        sessionStorage.setItem(`debate-${debateId}-refreshed`, "true");
-        window.location.reload();
-      }
-    }
-  }, [debate?.status, debateId]);
-
-  useEffect(() => {
     if (visitorId) {
       const name = localStorage.getItem("visitorName") || "Anonymous";
       joinDebate(visitorId, name);

@@ -6,7 +6,6 @@ interface TimerProps {
 
 export function Timer({ timeLeft }: TimerProps) {
   if (timeLeft === null) return null;
-  
   const isLow = timeLeft <= 10;
   
   return (

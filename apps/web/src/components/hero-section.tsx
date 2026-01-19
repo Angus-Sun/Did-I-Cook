@@ -43,7 +43,7 @@ export function HeroSection({ onStartClick }: HeroSectionProps) {
         <FloatingFood
           delay={0.5}
           rotate={8}
-          emoji="🔥"
+          image="/fire.png"
           className="hidden sm:block right-[8%] top-[18%]"
         />
       </div>
@@ -121,7 +121,13 @@ export function HeroSection({ onStartClick }: HeroSectionProps) {
       </div>
       
       {/* People at podiums */}
-      <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+      <motion.div 
+        custom={2.5}
+        variants={fadeUpVariants}
+        initial="hidden"
+        animate="visible"
+        className="absolute bottom-0 left-0 right-0 pointer-events-none"
+      >
         <img 
           src="/people.png" 
           alt="" 
@@ -131,7 +137,7 @@ export function HeroSection({ onStartClick }: HeroSectionProps) {
             WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 80%, transparent 100%)'
           }}
         />
-      </div>
+      </motion.div>
     </div>
   );
 }

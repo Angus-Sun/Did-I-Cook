@@ -239,10 +239,11 @@ export function useTimer(debate: Debate | null, phaseDurations: number[]) {
     }
 
     const duration = phaseDurations[debate.currentPhase];
+    
     if (duration === undefined) return;
-
+  
+    const startTime = new Date(debate.phaseStartTime).getTime();
     const updateTimer = () => {
-      const startTime = new Date(debate.phaseStartTime!).getTime();
       const now = Date.now();
       const elapsed = Math.floor((now - startTime) / 1000);
       const remaining = Math.max(0, duration - elapsed);
@@ -250,7 +251,8 @@ export function useTimer(debate: Debate | null, phaseDurations: number[]) {
     };
 
     updateTimer();
-    const interval = setInterval(updateTimer, 1000);
+    const interval = setInterval(updateTimer, 100);
+    
     return () => clearInterval(interval);
   }, [debate?.phaseStartTime, debate?.currentPhase, debate?.status, phaseDurations]);
 
@@ -266,43 +268,34 @@ export function useWebRTC(debateId: string, visitorId: string, localStream: Medi
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const stompClientRef = useRef<any>(null);
   const hasCreatedOfferRef = useRef(false);
+  const offerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!debateId || !visitorId || !localStream) return;
 
     let isMounted = true;
+    hasCreatedOfferRef.current = false;
 
     const initWebRTC = async () => {
       try {
-        // Dynamic import for SockJS and STOMP
         const SockJS = (await import("sockjs-client")).default;
         const { Client } = await import("@stomp/stompjs");
-
-        // Create STOMP client
         const client = new Client({
           webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
           reconnectDelay: 5000,
           debug: (str) => console.log("STOMP:", str),
         });
-
-        // ICE servers configuration
         const iceServers: RTCConfiguration = {
           iceServers: [
             { urls: "stun:stun.l.google.com:19302" },
             { urls: "stun:stun1.l.google.com:19302" },
           ],
         };
-
-        // Create peer connection
         const peerConnection = new RTCPeerConnection(iceServers);
         peerConnectionRef.current = peerConnection;
-
-        // Add local tracks to peer connection
         localStream.getTracks().forEach((track) => {
           peerConnection.addTrack(track, localStream);
         });
-
-        // Handle incoming remote tracks
         peerConnection.ontrack = (event) => {
           console.log("Received remote track");
           if (isMounted) {
@@ -310,8 +303,6 @@ export function useWebRTC(debateId: string, visitorId: string, localStream: Medi
             setIsConnected(true);
           }
         };
-
-        // Handle ICE candidates
         peerConnection.onicecandidate = (event) => {
           if (event.candidate && client.connected) {
             client.publish({
@@ -334,53 +325,48 @@ export function useWebRTC(debateId: string, visitorId: string, localStream: Medi
             setIsConnected(false);
           }
         };
-
-        // STOMP connection handlers
         client.onConnect = () => {
           console.log("WebSocket connected");
           stompClientRef.current = client;
-
-          // Join the room
           client.publish({
             destination: "/app/join",
             body: JSON.stringify({ debateId: debateId, visitorId }),
           });
-
-          // Subscribe to user joined events
           client.subscribe(`/topic/room/${debateId}/user-joined`, (message) => {
             const data = JSON.parse(message.body);
             console.log("User joined:", data);
-            
-            // If it's us joining and there are existing users, create offer
-            if (data.userId === visitorId && data.existingUsers > 0 && !hasCreatedOfferRef.current) {
+  
+            // Only the user who just joined AND finds someone already here creates the offer
+            // This ensures only ONE side initiates the connection
+            if (data.userId === visitorId && data.existingUsers > 0 && !hasCreatedOfferRef.current && isMounted) {
               hasCreatedOfferRef.current = true;
-              createOffer(peerConnection, client, debateId, visitorId);
+              offerTimeoutRef.current = setTimeout(() => {
+                if (isMounted && peerConnection.signalingState !== 'closed') {
+                  createOffer(peerConnection, client, debateId, visitorId);
+                }
+              }, 500); // Small delay to ensure the other peer is ready
             }
-            // If someone else joined, they will create the offer
           });
 
-          // Subscribe to offers
           client.subscribe(`/topic/room/${debateId}/offer`, async (message) => {
             const data = JSON.parse(message.body);
-            if (data.fromUser !== visitorId) {
+            if (data.fromUser !== visitorId && isMounted && peerConnection.signalingState !== 'closed') {
               console.log("Received offer from:", data.fromUser);
               await handleOffer(peerConnection, client, debateId, visitorId, data.offer);
             }
           });
 
-          // Subscribe to answers
           client.subscribe(`/topic/room/${debateId}/answer`, async (message) => {
             const data = JSON.parse(message.body);
-            if (data.fromUser !== visitorId) {
+            if (data.fromUser !== visitorId && isMounted && peerConnection.signalingState !== 'closed') {
               console.log("Received answer from:", data.fromUser);
               await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
             }
           });
 
-          // Subscribe to ICE candidates
           client.subscribe(`/topic/room/${debateId}/ice-candidate`, async (message) => {
             const data = JSON.parse(message.body);
-            if (data.fromUser !== visitorId && data.candidate) {
+            if (data.fromUser !== visitorId && data.candidate && isMounted && peerConnection.signalingState !== 'closed') {
               console.log("Received ICE candidate from:", data.fromUser);
               try {
                 await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
@@ -390,7 +376,6 @@ export function useWebRTC(debateId: string, visitorId: string, localStream: Medi
             }
           });
 
-          // Subscribe to user left
           client.subscribe(`/topic/room/${debateId}/user-left`, (message) => {
             const leftUser = message.body;
             console.log("User left:", leftUser);
@@ -412,6 +397,9 @@ export function useWebRTC(debateId: string, visitorId: string, localStream: Medi
         // Cleanup
         return () => {
           isMounted = false;
+          if (offerTimeoutRef.current) {
+            clearTimeout(offerTimeoutRef.current);
+          }
           if (client.connected) {
             client.publish({
               destination: "/app/leave",
@@ -439,7 +427,6 @@ export function useWebRTC(debateId: string, visitorId: string, localStream: Medi
   return { remoteStream, isConnected, connectionError };
 }
 
-// Helper function to create offer
 async function createOffer(
   peerConnection: RTCPeerConnection,
   client: any,
@@ -465,7 +452,6 @@ async function createOffer(
   }
 }
 
-// Helper function to handle offer
 async function handleOffer(
   peerConnection: RTCPeerConnection,
   client: any,
