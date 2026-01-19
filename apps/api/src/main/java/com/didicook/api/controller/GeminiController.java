@@ -12,8 +12,7 @@ public class GeminiController {
     @Autowired
     private GeminiService geminiService;
     @PostMapping("/score")
-    public Map<String, Object> scoreDebate(@RequestBody Map<String, String> body) {
-        String prompt = body.get("prompt");
-        return geminiService.scoreDebate(prompt);
+    public Map<String, Object> scoreDebate(@RequestBody Map<String, Object> body) {
+        return geminiService.scoreDebate(body);
     }
 }
