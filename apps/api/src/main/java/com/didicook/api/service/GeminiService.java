@@ -235,9 +235,9 @@ public class GeminiService {
 
             java.util.List<String> originalRoundTitles = new java.util.ArrayList<>();
             try {
-                List<Map<String, Object>> phases = (List<Map<String, Object>>) input.get("phases");
-                if (phases != null) {
-                    for (Map<String, Object> ph : phases) {
+                List<Map<String, Object>> phasesForTitles = (List<Map<String, Object>>) input.get("phases");
+                if (phasesForTitles != null) {
+                    for (Map<String, Object> ph : phasesForTitles) {
                         Object t = ph.get("type");
                         if (t != null) {
                             String title = t.toString();

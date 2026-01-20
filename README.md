@@ -1,6 +1,6 @@
 # Did-I-Cook? 
 
-A real-time, AI-judged debate app where two players debate a topic on video and an AI (Gemini) scores them with evidence-backed reasoning using a RAG pipeline (OpenSearch + embeddings). The project includes a Next.js frontend, a Spring Boot backend (API + signaling), and Python worker scripts to chunk/embed and index evidence into OpenSearch.
+A real-time, AI-judged debate app where two players debate a topic on video and an AI (Gemini) scores them with evidence-backed reasoning using a RAG pipeline (OpenSearch + embeddings). The project includes a Next.js frontend, a Spring Boot backend (API + signaling), and Python worker scripts to chunk/embed and index evidence into OpenSearch. BIG THANKS to Kaelyn Cho for her amazing artwork she's provided for this project <:
 
 ---
 
@@ -13,43 +13,6 @@ A real-time, AI-judged debate app where two players debate a topic on video and 
 - [UX & features](#ux--features)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
-
----
-
-## Architecture
-
-Mermaid (rendered on GitHub when enabled):
-
-```mermaid
-flowchart LR
-  subgraph Browser
-    A["Next.js web app<br/> (React + WebRTC)"]
-  end
-
-  A -->|REST / WebSocket| B[Spring Boot API]
-  B -->|POST /results| C[Gemini LLM]
-  B -->|GET /search| D[FastAPI RAG]
-  D -->|kNN search| E[OpenSearch index]
-  subgraph Worker
-    F[chunk_and_embed.py / index_chunks.py]
-    F --> E
-    F -->|uploads| E
-  end
-
-  subgraph Infra
-    E
-    C
-  end
-
-  A ---|Signaling| B
-```
-
-ASCII fallback:
-
-Browser (Next.js + WebRTC) -> Spring Boot API (signals & results) -> Gemini (LLM)
-                                         |
-                                         -> FastAPI / OpenSearch (RAG evidence)
-                                         <- Worker (chunk/embed -> index)
 
 ---
 
