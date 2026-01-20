@@ -38,10 +38,26 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
+  // If caller provides a `query` string, proxy to the worker's `/search` endpoint
+  if (body.query) {
+    const workerUrl = process.env.WORKER_SEARCH_URL || 'http://localhost:8000/search'
+    try {
+      const resp = await fetch(workerUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: body.query, top_k: body.top_k || 5 })
+      })
+      const data = await resp.json()
+      return NextResponse.json(data, { status: resp.status })
+    } catch (err: any) {
+      return NextResponse.json({ error: 'Failed to proxy query to worker', details: err.message }, { status: 502 })
+    }
+  }
+
   const embedding: number[] | undefined = body.embedding
   const top_k: number = body.top_k || 5
   if (!embedding) {
-    return NextResponse.json({ error: 'Request must include an `embedding` array' }, { status: 400 })
+    return NextResponse.json({ error: 'Request must include an `embedding` array or a `query` string' }, { status: 400 })
   }
 
   if (!EMBEDDINGS || !META) {

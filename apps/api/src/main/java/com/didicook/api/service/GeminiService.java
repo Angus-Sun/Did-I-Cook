@@ -182,7 +182,10 @@ public class GeminiService {
 
     public List<String> getEvidenceChunks(String debateTurn, int topK) {
         RestTemplate restTemplate = new RestTemplate();
-        String url = "http://localhost:8000/search";
+        String url = System.getenv("SEMANTIC_SEARCH_URL");
+        if (url == null || url.isBlank()) {
+            url = "http://localhost:3000/api/semantic-search";
+        }
         ObjectMapper mapper = new ObjectMapper();
         String requestJson = "";
         try {
