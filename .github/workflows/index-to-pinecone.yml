@@ -1,0 +1,35 @@
+name: Index to Pinecone (scheduled)
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # daily at 02:00 UTC
+  workflow_dispatch:
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r apps/worker/requirements.txt
+
+      - name: Run chunk_and_embed
+        run: |
+          python apps/worker/scripts/chunk_and_embed.py
+
+      - name: Upsert to Pinecone
+        env:
+          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+          PINECONE_ENV: ${{ secrets.PINECONE_ENV }}
+          PINECONE_INDEX: did-i-cook
+        run: |
+          python apps/worker/scripts/index_to_pinecone.py
