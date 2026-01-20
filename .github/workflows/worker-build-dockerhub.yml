@@ -26,8 +26,10 @@ jobs:
           IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/did-i-cook-worker
           SHORT_SHA: ${{ github.sha }}
         run: |
+          # explicitly point to the Dockerfile and use the correct build context
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
+            -f apps/worker/Dockerfile \
             -t $IMAGE_NAME:${SHORT_SHA::7} \
             -t $IMAGE_NAME:latest \
             --push apps/worker
