@@ -31,7 +31,7 @@ export function VideoFeed({ videoRef, localStream, remoteStream, playerName, isL
   }, [remoteStream]);
 
   return (
-    <div className="relative rounded-2xl shadow-sm aspect-video overflow-hidden">
+    <div className="relative rounded-2xl shadow-sm aspect-video overflow-hidden max-h-[40vh] md:max-h-[60vh]">
       {isLocalPlayer ? (
         <video
           ref={videoRef || localVideoRef}

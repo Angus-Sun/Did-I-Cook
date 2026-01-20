@@ -31,6 +31,5 @@ Thumbs.db
 # Large archive / OpenSearch artifacts
 opensearch.zip
 opensearch/
-# Ignore OpenSearch distribution folders (versioned dirs like opensearch-2.11.1)
 opensearch-*/
 opensearch*/

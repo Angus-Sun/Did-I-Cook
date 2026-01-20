@@ -164,7 +164,7 @@ export default function DebateRoom() {
 
   // debate in progress
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-yellow-50 p-4 flex flex-col items-center relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-yellow-50 p-4 flex flex-col items-center justify-center relative overflow-auto">
       <motion.div 
         className="absolute inset-0 pointer-events-none"
         initial={{ opacity: 0 }}
@@ -201,7 +201,7 @@ export default function DebateRoom() {
             </div>
 
             {!(debate.status === "judging" && results && typeof results === "object" && !Array.isArray(results)) && (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <VideoFeed
                   videoRef={isPlayer1 ? videoRef : undefined}
                   localStream={isPlayer1 ? localStream : undefined}

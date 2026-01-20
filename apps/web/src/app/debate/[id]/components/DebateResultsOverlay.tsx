@@ -56,6 +56,7 @@ export const DebateResultsOverlay: React.FC<DebateResultsProps> = ({
   onReturnHome,
 }) => {
   const [size, setSize] = useState({ width: 1200, height: 800 });
+  const isSmallScreen = size.width < 640;
 
   useEffect(() => {
     const update = () => setSize({ width: window.innerWidth, height: window.innerHeight });
@@ -110,12 +111,12 @@ export const DebateResultsOverlay: React.FC<DebateResultsProps> = ({
   };
 
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full pb-12" style={{ fontFamily: 'var(--font-caveat)', fontSize: '18px' }}>
+    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full pb-12 overflow-auto max-h-screen" style={{ fontFamily: 'var(--font-caveat)', fontSize: '18px' }}>
       {visitorVictory && (
         <Confetti
           width={size.width}
           height={size.height}
-          numberOfPieces={300}
+          numberOfPieces={isSmallScreen ? 80 : 300}
           recycle={false}
           style={{ position: "fixed", top: 0, left: 0, zIndex: 50 }}
         />

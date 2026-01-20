@@ -224,10 +224,9 @@ export function useMediaStream() {
   useEffect(() => {
     const initMedia = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: true, 
-          audio: true 
-        });
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+        const constraints: any = isMobile ? { video: { width: { ideal: 640 }, height: { ideal: 360 } }, audio: true } : { video: true, audio: true };
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         streamRef.current = stream;
         setLocalStream(stream);
         if (videoRef.current) {
