@@ -2,4 +2,7 @@ sentence-transformers
 opensearch-py
 tqdm
 pinecone-client
+python-dotenv
+fastapi
+uvicorn[standard]
 

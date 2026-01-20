@@ -1,9 +1,15 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
-DOCS_DIR = Path(__file__).resolve().parent.parent / "docs"
+SCRIPT_DIR = Path(__file__).resolve().parent
+DOCS_DIR = SCRIPT_DIR.parent / "docs"
+# Load environment variables from apps/worker/.env if present
+env_path = SCRIPT_DIR.parent / '.env'
+if env_path.exists():
+    load_dotenv(env_path)
 CHUNK_SIZE = 300
 
 if not DOCS_DIR.exists():
