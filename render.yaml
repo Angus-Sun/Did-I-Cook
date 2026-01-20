@@ -5,7 +5,7 @@ services:
     branch: main
     repo: https://github.com/Angus-Sun/Did-I-Cook
     root: apps/api
-    dockerfilePath: apps/api/Dockerfile
+    dockerfilePath: Dockerfile
     plan: starter
     envVars:
       - key: GEMINI_API_KEY
@@ -21,13 +21,13 @@ services:
       - key: OPENSEARCH_URL
         value: ""
 
-  - type: worker
+  - type: web
     name: did-i-cook-worker
     env: docker
     branch: main
     repo: https://github.com/Angus-Sun/Did-I-Cook
     root: apps/worker
-    dockerfilePath: apps/worker/Dockerfile
+    dockerfilePath: Dockerfile
     plan: starter
     envVars:
       - key: PINECONE_API_KEY
