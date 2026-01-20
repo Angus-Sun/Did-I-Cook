@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: did-i-cook-api
+    env: docker
+    branch: main
+    repo: https://github.com/<your-org>/<your-repo>
+    root: apps/api
+    dockerfilePath: apps/api/Dockerfile
+    plan: starter
+    envVars:
+      - key: GEMINI_API_KEY
+        value: ""
+      - key: OPENSEARCH_URL
+        value: ""
+
+  - type: worker
+    name: did-i-cook-worker
+    env: docker
+    branch: main
+    repo: https://github.com/<your-org>/<your-repo>
+    root: apps/worker
+    dockerfilePath: apps/worker/Dockerfile
+    plan: starter
+    envVars:
+      - key: PINECONE_API_KEY
+        value: ""
+      - key: PINECONE_ENV
+        value: ""
+      - key: OPENSEARCH_URL
+        value: ""

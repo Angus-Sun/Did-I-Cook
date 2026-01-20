@@ -1,4 +1,5 @@
 sentence-transformers
 opensearch-py
 tqdm
+pinecone-client
 
