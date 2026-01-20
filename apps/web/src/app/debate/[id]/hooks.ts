@@ -127,7 +127,7 @@ interface UseDebateResult {
 
 export function useDebate(debateId: string): UseDebateResult {
   const [debate, setDebate] = useState<Debate | null>(null);
-  const API_ROOT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  const API_ROOT = process.env.NEXT_PUBLIC_API_URL || "https://did-i-cook.onrender.com";
   const API_BASE = `${API_ROOT}/api/debates/${debateId}`;
 
   useEffect(() => {
@@ -302,7 +302,17 @@ export function useWebRTC(debateId: string, visitorId: string, localStream: Medi
       try {
         const SockJS = (await import("sockjs-client")).default;
         const { Client } = await import("@stomp/stompjs");
-        const WS_ROOT = process.env.NEXT_PUBLIC_WS_URL || `${API_ROOT}/ws`;
+        // Prefer explicit NEXT_PUBLIC_WS_URL, but never accept the deployed worker host.
+        const envWs = process.env.NEXT_PUBLIC_WS_URL || `${API_ROOT}/ws`;
+        let WS_ROOT = envWs;
+        try {
+          if (typeof WS_ROOT === 'string' && WS_ROOT.includes('worker')) {
+            console.warn('NEXT_PUBLIC_WS_URL points to worker; using API /ws instead');
+            WS_ROOT = `${API_ROOT}/ws`;
+          }
+        } catch (e) {
+          WS_ROOT = `${API_ROOT}/ws`;
+        }
         const client = new Client({
           webSocketFactory: () => new SockJS(WS_ROOT),
           reconnectDelay: 5000,
