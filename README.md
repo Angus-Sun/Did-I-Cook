@@ -23,7 +23,7 @@ Mermaid (rendered on GitHub when enabled):
 ```mermaid
 flowchart LR
   subgraph Browser
-    A[Next.js web app<br>(React + WebRTC)]
+    A["Next.js web app<br/> (React + WebRTC)"]
   end
 
   A -->|REST / WebSocket| B[Spring Boot API]
