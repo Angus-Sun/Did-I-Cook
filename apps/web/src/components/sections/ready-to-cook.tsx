@@ -32,6 +32,8 @@ export function ReadyToCookSection() {
   const [createName, setCreateName] = useState("");
   const [joinName, setJoinName] = useState("");
 
+  const API_ROOT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
   const handleCreateRoom = async () => {
     if (!createName.trim()) {
       setCreateError("Please enter your name");
@@ -41,7 +43,7 @@ export function ReadyToCookSection() {
     setCreateError("");
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:8080/api/debates", {
+      const response = await fetch(`${API_ROOT}/api/debates`, {
         method: "POST",
         headers: { "Content-Type": "application/json"},
         body: JSON.stringify({ topic: selectedTopic }),
@@ -70,7 +72,7 @@ export function ReadyToCookSection() {
     setIsLoading(true);
     setJoinError("");
     try {
-      const response = await fetch(`http://localhost:8080/api/debates/${roomCode.toUpperCase()}`);
+      const response = await fetch(`${API_ROOT}/api/debates/${roomCode.toUpperCase()}`);
 
       if (!response.ok) {
         setJoinError("Room not found");

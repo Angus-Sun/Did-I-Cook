@@ -127,7 +127,8 @@ interface UseDebateResult {
 
 export function useDebate(debateId: string): UseDebateResult {
   const [debate, setDebate] = useState<Debate | null>(null);
-  const API_BASE = `http://localhost:8080/api/debates/${debateId}`;
+  const API_ROOT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  const API_BASE = `${API_ROOT}/api/debates/${debateId}`;
 
   useEffect(() => {
     const fetchDebate = async () => {
@@ -296,12 +297,14 @@ export function useWebRTC(debateId: string, visitorId: string, localStream: Medi
     let isMounted = true;
     hasCreatedOfferRef.current = false;
 
+    const API_ROOT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
     const initWebRTC = async () => {
       try {
         const SockJS = (await import("sockjs-client")).default;
         const { Client } = await import("@stomp/stompjs");
+        const WS_ROOT = process.env.NEXT_PUBLIC_WS_URL || `${API_ROOT}/ws`;
         const client = new Client({
-          webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+          webSocketFactory: () => new SockJS(WS_ROOT),
           reconnectDelay: 5000,
           debug: (str) => console.log("STOMP:", str),
         });

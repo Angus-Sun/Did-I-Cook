@@ -37,7 +37,8 @@ export default function DebateRoom() {
   useEffect(() => {
     if (debate && debate.status === "judging") {
       console.log("Fetching results for debate", debateId);
-      fetch(`http://localhost:8080/api/debates/${debateId}/results`)
+        const API_ROOT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+        fetch(`${API_ROOT}/api/debates/${debateId}/results`)
         .then(res => res.json())
         .then(data => {
           console.log("Results fetched:", data);
