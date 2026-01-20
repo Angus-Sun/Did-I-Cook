@@ -114,8 +114,10 @@ public class GeminiService {
             "}";
 
         String fullPrompt = "Given the following debate, score it using the following JSON format. " +
-            "Replace round names with the actual round titles. " +
-            "Be concise and fair. Return ONLY valid JSON, no markdown, no commentary, no code block formatting, no explanation, no triple backticks.\n\n" +
+            "Replace the placeholder round names in the example JSON with the exact round titles as they appear in the Debate transcript. " +
+            "Do NOT rename, replace, or invent round names (do not output 'phase 0', 'phase 1', 'Round 1', etc.). " +
+            "Preserve the original round names exactly (for example: 'Opening Statement', 'Argument', 'Closing Statement'). " +
+            "Be concise and fair. Return ONLY valid JSON — no markdown, no commentary, no code block formatting, no explanation, no triple backticks.\n\n" +
             exampleJson +
             evidenceSection.toString() +
             "\nDebate transcript:\n" + transcript.toString();

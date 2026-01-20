@@ -32,7 +32,7 @@ export function ReadyToCookSection() {
   const [createName, setCreateName] = useState("");
   const [joinName, setJoinName] = useState("");
 
-  const API_ROOT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  const API_ROOT = process.env.NEXT_PUBLIC_API_URL || "https://did-i-cook.onrender.com";
 
   const handleCreateRoom = async () => {
     if (!createName.trim()) {

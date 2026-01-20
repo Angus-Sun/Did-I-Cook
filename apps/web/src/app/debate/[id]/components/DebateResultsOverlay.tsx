@@ -153,7 +153,7 @@ export const DebateResultsOverlay: React.FC<DebateResultsProps> = ({
             <div className="w-full max-w-md mx-auto">
               <CookbookCard
                 title={player1Name}
-                subtitle={`${player1TotalScore}/100`}
+                subtitle={`${player1TotalScore}/160`}
                 ingredients={[...(player1Strengths.length ? player1Strengths : ["No strengths identified."]), ...(player1Weaknesses.length ? ["— Areas for improvement —", ...player1Weaknesses] : [])]}
                 colorScheme={isPlayer1Winner ? 'yellow' : 'red'}
                 frontPaddingClass="pt-12"
@@ -163,7 +163,7 @@ export const DebateResultsOverlay: React.FC<DebateResultsProps> = ({
             <div className="w-full max-w-md mx-auto">
               <CookbookCard
                 title={player2Name}
-                subtitle={`${player2TotalScore}/100`}
+                subtitle={`${player2TotalScore}/160`}
                 ingredients={[...(player2Strengths.length ? player2Strengths : ["No strengths identified."]), ...(player2Weaknesses.length ? ["— Areas for improvement —", ...player2Weaknesses] : [])]}
                 colorScheme={isPlayer2Winner ? 'yellow' : 'red'}
                 frontPaddingClass="pt-12"

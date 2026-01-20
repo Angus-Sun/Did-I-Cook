@@ -297,7 +297,7 @@ export function useWebRTC(debateId: string, visitorId: string, localStream: Medi
     let isMounted = true;
     hasCreatedOfferRef.current = false;
 
-    const API_ROOT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+    const API_ROOT = process.env.NEXT_PUBLIC_API_URL || "https://did-i-cook.onrender.com";
     const initWebRTC = async () => {
       try {
         const SockJS = (await import("sockjs-client")).default;
