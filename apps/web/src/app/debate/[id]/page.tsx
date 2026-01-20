@@ -37,7 +37,7 @@ export default function DebateRoom() {
   useEffect(() => {
     if (debate && debate.status === "judging") {
       console.log("Fetching results for debate", debateId);
-        const API_ROOT = process.env.NEXT_PUBLIC_API_URL || "https://did-i-cook.onrender.com";
+        const API_ROOT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
         fetch(`${API_ROOT}/api/debates/${debateId}/results`)
         .then(res => res.json())
         .then(data => {

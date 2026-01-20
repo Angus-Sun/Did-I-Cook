@@ -182,10 +182,7 @@ public class GeminiService {
 
     public List<String> getEvidenceChunks(String debateTurn, int topK) {
         RestTemplate restTemplate = new RestTemplate();
-        String url = System.getenv("SEMANTIC_SEARCH_URL");
-        if (url == null || url.isBlank()) {
-            url = "http://localhost:3000/api/semantic-search";
-        }
+        String url = "http://localhost:8000/search";
         ObjectMapper mapper = new ObjectMapper();
         String requestJson = "";
         try {
@@ -202,22 +199,30 @@ public class GeminiService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> entity = new HttpEntity<>(requestJson, headers);
 
-        ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
 
-        List<String> evidence = new java.util.ArrayList<>();
-        if (response.getStatusCode() == org.springframework.http.HttpStatus.OK) {
-            try {
-                JsonNode body = mapper.readTree(response.getBody());
-                JsonNode results = body.get("results");
-                if (results != null && results.isArray()) {
-                    for (JsonNode chunk : results) {
-                        evidence.add(chunk.get("text").asText());
+            List<String> evidence = new java.util.ArrayList<>();
+            if (response.getStatusCode() == org.springframework.http.HttpStatus.OK) {
+                try {
+                    JsonNode body = mapper.readTree(response.getBody());
+                    JsonNode results = body.get("results");
+                    if (results != null && results.isArray()) {
+                        for (JsonNode chunk : results) {
+                            evidence.add(chunk.get("text").asText());
+                        }
                     }
+                } catch (Exception e) {
+                    // parsing failed — log and return empty evidence so Gemini is used without RAG
+                    System.out.println("[GeminiService] Failed to parse semantic-search response: " + e.getMessage());
+                    return java.util.Collections.emptyList();
                 }
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to parse response JSON", e);
             }
+            return evidence;
+        } catch (Exception e) {
+            // semantic-search API or OpenSearch is not available — fall back to direct Gemini without evidence
+            System.out.println("[GeminiService] semantic-search unavailable, falling back to direct Gemini: " + e.getMessage());
+            return java.util.Collections.emptyList();
         }
-        return evidence;
     }
 }
