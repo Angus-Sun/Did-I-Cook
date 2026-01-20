@@ -42,6 +42,60 @@ public class GeminiService {
             return Map.of("error", "Invalid input format for phases", "details", e.getMessage());
         }
 
+        // If no participant produced any speech, skip calling Gemini and return zeros
+        List<Map<String, Object>> phases = null;
+        try {
+            phases = (List<Map<String, Object>>) input.get("phases");
+        } catch (Exception ignore) {
+        }
+
+        boolean anySpeech = false;
+        if (phases != null) {
+            for (Map<String, Object> ph : phases) {
+                Object textObj = ph.get("text");
+                if (textObj != null) {
+                    String t = textObj.toString().trim();
+                    if (!t.isEmpty() && !t.equalsIgnoreCase("(No speech detected)")) {
+                        anySpeech = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!anySpeech) {
+            // Build a default tie result with zeroed scores and helpful feedback
+            java.util.List<Map<String, Object>> roundsOut = new java.util.ArrayList<>();
+            if (phases != null) {
+                for (Map<String, Object> ph : phases) {
+                    String title = ph.getOrDefault("type", "Round").toString();
+                    Map<String, Object> r = new java.util.HashMap<>();
+                    r.put("name", title);
+                    r.put("winner", "tie");
+                    r.put("player1Score", Map.of("logic", 0, "clarity", 0, "evidence", 0, "civility", 0));
+                    r.put("player2Score", Map.of("logic", 0, "clarity", 0, "evidence", 0, "civility", 0));
+                    r.put("player1Feedback", "No speech detected, preventing any evaluation of content or argument.");
+                    r.put("player2Feedback", "No speech detected, preventing any evaluation of content or argument.");
+                    roundsOut.add(r);
+                }
+            }
+
+            Map<String, Object> early = new java.util.HashMap<>();
+            early.put("winner", "tie");
+            early.put("player1Name", player1Name);
+            early.put("player2Name", player2Name);
+            early.put("player1TotalScore", 0);
+            early.put("player2TotalScore", 0);
+            early.put("whatDecidedIt", "The complete absence of speech from both participants prevented any evaluation.");
+            early.put("player1Strengths", new java.util.ArrayList<>());
+            early.put("player2Strengths", new java.util.ArrayList<>());
+            early.put("player1Weaknesses", java.util.List.of("Did not present any arguments or content."));
+            early.put("player2Weaknesses", java.util.List.of("Did not present any arguments or content."));
+            early.put("keyEvidence", new java.util.ArrayList<>());
+            early.put("rounds", roundsOut);
+            return early;
+        }
+
         List<String> evidence = getEvidenceChunks(transcript.toString(), 5);
         StringBuilder evidenceSection = new StringBuilder();
         if (!evidence.isEmpty()) {
