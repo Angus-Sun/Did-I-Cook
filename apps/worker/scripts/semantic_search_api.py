@@ -19,11 +19,10 @@ def search(query: Query):
     script_query = {
         "size": query.top_k,
         "query": {
-            "script_score": {
-                "query": {"match_all": {}},
-                "script": {
-                    "source": "cosineSimilarity(params.query_vector, 'embedding') + 1.0",
-                    "params": {"query_vector": embedding.tolist()}
+            "knn": {
+                "embedding": {
+                    "vector": embedding.tolist(),
+                    "k": query.top_k
                 }
             }
         }

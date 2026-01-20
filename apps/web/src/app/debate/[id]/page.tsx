@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { PHASE_INFO } from "./types";
 import { useDebate, useSpeechRecognition, useMediaStream, useTimer, useWebRTC } from "./hooks";
@@ -10,13 +10,15 @@ import {
   SpeechTranscript, 
   Timer, 
   PreviousArguments, 
-  WaitingRoom, 
-  JudgingView 
+  WaitingRoom 
 } from "./components";
+import { DebateResultsOverlay } from "./components/DebateResultsOverlay";
 
 export default function DebateRoom() {
   const params = useParams();
+  const router = useRouter();
   const debateId = params.id as string;
+  const [results, setResults] = useState<any | null>(null);
   const [visitorId] = useState(() => 
     typeof window !== "undefined" 
       ? localStorage.getItem("visitorId") || crypto.randomUUID()
@@ -31,6 +33,22 @@ export default function DebateRoom() {
   const timeLeft = useTimer(debate, PHASE_INFO.map(p => p.duration));
   const { remoteStream, isConnected, connectionError } = useWebRTC(debateId, visitorId, localStream);
   const handleReady = () => setReady(visitorId);
+  
+  useEffect(() => {
+    if (debate && debate.status === "judging") {
+      console.log("Fetching results for debate", debateId);
+      fetch(`http://localhost:8080/api/debates/${debateId}/results`)
+        .then(res => res.json())
+        .then(data => {
+          console.log("Results fetched:", data);
+          setResults(data);
+        })
+        .catch(error => {
+          console.error("Failed to fetch results:", error);
+          setResults(null);
+        });
+    }
+  }, [debateId, debate?.status]);
   
   const handleEndTurn = useCallback(async () => {
     if (isSubmitting) return;
@@ -144,13 +162,9 @@ export default function DebateRoom() {
     );
   }
 
-  if (debate.status === "judging") {
-    return <JudgingView debate={debate} />;
-  }
-
   // debate in progress
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-yellow-50 p-4 flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-yellow-50 p-4 flex flex-col items-center relative overflow-hidden">
       <motion.div 
         className="absolute inset-0 pointer-events-none"
         initial={{ opacity: 0 }}
@@ -174,58 +188,116 @@ export default function DebateRoom() {
       </div>
 
       <div className="relative z-10 max-w-4xl 2xl:max-w-6xl w-full space-y-4">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-orange-600">🍳 {debate.topic}</h1>
-          <p className="text-gray-500 text-base">
-            {currentPhaseInfo?.isBuffer 
-              ? currentPhaseInfo.name
-              : `${currentPhaseInfo?.name} — ${debate.currentSpeaker === debate.player1Id ? debate.player1Name : debate.player2Name}`
-            }
-          </p>
-        </div>
+        {!(debate.status === "judging" && results && typeof results === "object" && !Array.isArray(results)) && (
+          <>
+            <div className="text-center">
+              <h1 className="text-2xl font-bold text-orange-600">🍳 {debate.topic}</h1>
+              <p className="text-gray-500 text-base">
+                {currentPhaseInfo?.isBuffer 
+                  ? currentPhaseInfo.name
+                  : `${currentPhaseInfo?.name} — ${debate.currentSpeaker === debate.player1Id ? debate.player1Name : debate.player2Name}`
+                }
+              </p>
+            </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <VideoFeed
-            videoRef={isPlayer1 ? videoRef : undefined}
-            localStream={isPlayer1 ? localStream : undefined}
-            remoteStream={isPlayer2 ? remoteStream : undefined}
-            playerName={debate.player1Name}
-            isLocalPlayer={isPlayer1}
-            isSpeaking={debate.currentSpeaker === debate.player1Id}
-          />
-          <VideoFeed
-            videoRef={isPlayer2 ? videoRef : undefined}
-            localStream={isPlayer2 ? localStream : undefined}
-            remoteStream={isPlayer1 ? remoteStream : undefined}
-            playerName={debate.player2Name}
-            isLocalPlayer={isPlayer2}
-            isSpeaking={debate.currentSpeaker === debate.player2Id}
-          />
-        </div>
+            {!(debate.status === "judging" && results && typeof results === "object" && !Array.isArray(results)) && (
+              <div className="grid grid-cols-2 gap-4">
+                <VideoFeed
+                  videoRef={isPlayer1 ? videoRef : undefined}
+                  localStream={isPlayer1 ? localStream : undefined}
+                  remoteStream={isPlayer2 ? remoteStream : undefined}
+                  playerName={debate.player1Name}
+                  isLocalPlayer={isPlayer1}
+                  isSpeaking={debate.currentSpeaker === debate.player1Id}
+                />
+                <VideoFeed
+                  videoRef={isPlayer2 ? videoRef : undefined}
+                  localStream={isPlayer2 ? localStream : undefined}
+                  remoteStream={isPlayer1 ? remoteStream : undefined}
+                  playerName={debate.player2Name}
+                  isLocalPlayer={isPlayer2}
+                  isSpeaking={debate.currentSpeaker === debate.player2Id}
+                />
+              </div>
+            )}
 
-        <Timer timeLeft={timeLeft} />
-        {currentPhaseInfo?.isBuffer ? (
-          <div className="bg-white rounded-2xl p-4 text-center shadow-sm border border-gray-200">
-            <p className="text-gray-500">
-              Prep Time — {debate.player1Name} speaks next
-            </p>
-          </div>
-        ) : isMyTurn ? (
-          <SpeechTranscript
-            isListening={isListening}
-            transcript={transcript}
-            interimTranscript={interimTranscript}
-            onEndTurn={handleEndTurn}
-            isSubmitting={isSubmitting}
-          />
-        ) : (
-          <div className="bg-white rounded-2xl p-4 text-center shadow-sm border border-gray-200">
-            <p className="text-gray-500">
-              Waiting for {debate.currentSpeaker === debate.player1Id ? debate.player1Name : debate.player2Name}...
-            </p>
-          </div>
+            <Timer timeLeft={timeLeft} />
+            {debate.status === "judging" && !results ? (
+              <motion.div
+                className="fixed inset-0 z-20 flex items-center justify-center pointer-events-none"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.25 }}
+              >
+                <div className="pointer-events-auto bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200 w-80 text-center">
+                  <motion.h2
+                    initial={{ y: 8, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="text-lg font-semibold text-orange-600"
+                  >
+                    AI is judging...
+                  </motion.h2>
+                  <p className="mt-2 text-sm text-gray-600">Analyzing arguments and gathering supporting evidence. This usually takes a few seconds.</p>
+                  <div className="mt-4 flex items-center justify-center space-x-3 h-6">
+                    <motion.span className="w-3 h-3 bg-orange-500 rounded-full"
+                      animate={{ y: [0, -6, 0] }}
+                      transition={{ repeat: Infinity, duration: 0.9, delay: 0 }} />
+                    <motion.span className="w-3 h-3 bg-orange-500 rounded-full"
+                      animate={{ y: [0, -6, 0] }}
+                      transition={{ repeat: Infinity, duration: 0.9, delay: 0.15 }} />
+                    <motion.span className="w-3 h-3 bg-orange-500 rounded-full"
+                      animate={{ y: [0, -6, 0] }}
+                      transition={{ repeat: Infinity, duration: 0.9, delay: 0.3 }} />
+                  </div>
+                </div>
+              </motion.div>
+            ) : currentPhaseInfo?.isBuffer ? (
+              <div className="bg-white rounded-2xl p-4 text-center shadow-sm border border-gray-200">
+                <p className="text-gray-500">
+                  Prep Time — {debate.player1Name} speaks next
+                </p>
+              </div>
+            ) : isMyTurn ? (
+              <SpeechTranscript
+                isListening={isListening}
+                transcript={transcript}
+                interimTranscript={interimTranscript}
+                onEndTurn={handleEndTurn}
+                isSubmitting={isSubmitting}
+              />
+            ) : (
+              <div className="bg-white rounded-2xl p-4 text-center shadow-sm border border-gray-200">
+                <p className="text-gray-500">
+                  Waiting for {debate.currentSpeaker === debate.player1Id ? debate.player1Name : debate.player2Name}...
+                </p>
+              </div>
+            )}
+          </>
         )}
+
       </div>
+
+      {debate.status === "judging" && results && typeof results === "object" && !Array.isArray(results) && (
+        <DebateResultsOverlay
+          winner={(results as any).winner}
+          player1Id={debate.player1Id ?? undefined}
+          player2Id={debate.player2Id ?? undefined}
+          visitorId={visitorId}
+          player1Name={debate.player1Name ?? undefined}
+          player2Name={debate.player2Name ?? undefined}
+          player1TotalScore={(results as any).player1TotalScore}
+          player2TotalScore={(results as any).player2TotalScore}
+          player1Strengths={(results as any).player1Strengths || []}
+          player2Strengths={(results as any).player2Strengths || []}
+          player1Weaknesses={(results as any).player1Weaknesses || []}
+          player2Weaknesses={(results as any).player2Weaknesses || []}
+          keyEvidence={(results as any).keyEvidence || []}
+          rounds={(results as any).rounds || []}
+          whatDecidedIt={(results as any).whatDecidedIt}
+          onReturnHome={() => router.push('/')}
+        />
+      )}
     </div>
   );
 }

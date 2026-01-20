@@ -21,6 +21,8 @@ public class GeminiService {
     private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
     public Map<String, Object> scoreDebate(Map<String, Object> input) {
+        String player1Name = (String) input.getOrDefault("player1Name", "Player 1");
+        String player2Name = (String) input.getOrDefault("player2Name", "Player 2");
         StringBuilder transcript = new StringBuilder();
         try {
             List<Map<String, Object>> phases = (List<Map<String, Object>>) input.get("phases");
@@ -28,7 +30,13 @@ public class GeminiService {
                 String type = (String) phase.get("type");
                 int speaker = (int) (phase.get("speaker") instanceof Integer ? phase.get("speaker") : Integer.parseInt(phase.get("speaker").toString()));
                 String text = (String) phase.get("text");
-                transcript.append(type).append(" - Player ").append(speaker).append(": ").append(text).append("\n");
+                String speakerName = "Player " + speaker;
+                if (speaker == 1 && player1Name != null && !player1Name.isBlank()) {
+                    speakerName = player1Name;
+                } else if (speaker == 2 && player2Name != null && !player2Name.isBlank()) {
+                    speakerName = player2Name;
+                }
+                transcript.append(type).append(" - ").append(speakerName).append(": ").append(text).append("\n");
             }
         } catch (Exception e) {
             return Map.of("error", "Invalid input format for phases", "details", e.getMessage());
@@ -43,10 +51,12 @@ public class GeminiService {
             }
         }
         String exampleJson = "{\n" +
-            "  \"winner\": \"player1\",\n" +
+            "  \"winner\": \"" + player1Name + "\",\n" +
+            "  \"player1Name\": \"" + player1Name + "\",\n" +
+            "  \"player2Name\": \"" + player2Name + "\",\n" +
             "  \"player1TotalScore\": 78,\n" +
             "  \"player2TotalScore\": 72,\n" +
-            "  \"whatDecidedIt\": \"Player 1's opening statement established a stronger foundation with concrete examples, which Player 2 never fully countered.\",\n" +
+            "  \"whatDecidedIt\": \"" + player1Name + "'s opening statement established a stronger foundation with concrete examples, which " + player2Name + " never fully countered.\",\n" +
             "  \"player1Strengths\": [\n" +
             "    \"Excellent use of real-world examples\",\n" +
             "    \"Maintained composure throughout\"\n" +
@@ -55,34 +65,50 @@ public class GeminiService {
             "    \"Strong logical structure in arguments\",\n" +
             "    \"Effectively challenged opponent's assumptions\"\n" +
             "  ],\n" +
+            "  \"player1Weaknesses\": [\n" +
+            "    \"Could have addressed counterarguments more directly\",\n" +
+            "    \"Evidence could be more current\"\n" +
+            "  ],\n" +
+            "  \"player2Weaknesses\": [\n" +
+            "    \"Opening lacked strong examples\",\n" +
+            "    \"Some arguments were repetitive\"\n" +
+            "  ],\n" +
             "  \"keyEvidence\": [\n" +
-            "    \"Player 1 cited the 2024 McKinsey automation report\",\n" +
-            "    \"Player 2 referenced historical job displacement patterns\"\n" +
+            "    \"" + player1Name + " cited the 2024 McKinsey automation report\",\n" +
+            "    \"" + player2Name + " referenced historical job displacement patterns\"\n" +
             "  ],\n" +
             "  \"rounds\": [\n" +
             "    {\n" +
             "      \"name\": \"Opening Statement\",\n" +
-            "      \"winner\": \"player1\",\n" +
+            "      \"winner\": \"" + player1Name + "\",\n" +
             "      \"player1Score\": { \"logic\": 8, \"clarity\": 9, \"evidence\": 7, \"civility\": 10 },\n" +
-            "      \"player2Score\": { \"logic\": 7, \"clarity\": 8, \"evidence\": 6, \"civility\": 10 }\n" +
+            "      \"player2Score\": { \"logic\": 7, \"clarity\": 8, \"evidence\": 6, \"civility\": 10 },\n" +
+            "      \"player1Feedback\": \"Strong opening with clear examples, but could expand on evidence.\",\n" +
+            "      \"player2Feedback\": \"Good structure, but lacked compelling real-world ties.\"\n" +
             "    },\n" +
             "    {\n" +
             "      \"name\": \"Argument\",\n" +
-            "      \"winner\": \"player2\",\n" +
+            "      \"winner\": \"" + player2Name + "\",\n" +
             "      \"player1Score\": { \"logic\": 7, \"clarity\": 8, \"evidence\": 6, \"civility\": 9 },\n" +
-            "      \"player2Score\": { \"logic\": 8, \"clarity\": 8, \"evidence\": 7, \"civility\": 10 }\n" +
+            "      \"player2Score\": { \"logic\": 8, \"clarity\": 8, \"evidence\": 7, \"civility\": 10 },\n" +
+            "      \"player1Feedback\": \"Logical but evidence was weaker here.\",\n" +
+            "      \"player2Feedback\": \"Excellent rebuttal with strong evidence.\"\n" +
             "    },\n" +
             "    {\n" +
             "      \"name\": \"Closing Statement\",\n" +
-            "      \"winner\": \"player1\",\n" +
+            "      \"winner\": \"" + player1Name + "\",\n" +
             "      \"player1Score\": { \"logic\": 8, \"clarity\": 9, \"evidence\": 7, \"civility\": 10 },\n" +
-            "      \"player2Score\": { \"logic\": 7, \"clarity\": 7, \"evidence\": 6, \"civility\": 10 }\n" +
+            "      \"player2Score\": { \"logic\": 7, \"clarity\": 7, \"evidence\": 6, \"civility\": 10 },\n" +
+            "      \"player1Feedback\": \"Compelling close that tied back to opening.\",\n" +
+            "      \"player2Feedback\": \"Solid but didn't fully recover from earlier weaknesses.\"\n" +
             "    },\n" +
             "    {\n" +
             "      \"name\": \"Brief Response\",\n" +
             "      \"winner\": \"tie\",\n" +
             "      \"player1Score\": { \"logic\": 7, \"clarity\": 8, \"evidence\": 5, \"civility\": 10 },\n" +
-            "      \"player2Score\": { \"logic\": 7, \"clarity\": 8, \"evidence\": 5, \"civility\": 10 }\n" +
+            "      \"player2Score\": { \"logic\": 7, \"clarity\": 8, \"evidence\": 5, \"civility\": 10 },\n" +
+            "      \"player1Feedback\": \"Brief but effective.\",\n" +
+            "      \"player2Feedback\": \"Matched the brevity well.\"\n" +
             "    }\n" +
             "  ]\n" +
             "}";
@@ -99,7 +125,41 @@ public class GeminiService {
 
         String body = "{\"contents\":[{\"parts\":[{\"text\":\"" + fullPrompt.replace("\"", "\\\"") + "\"}]}]}";
         HttpEntity<String> request = new HttpEntity<>(body, headers);
-        ResponseEntity<String> response = restTemplate.postForEntity(GEMINI_URL + "?key=" + apiKey, request, String.class);
+        java.util.List<String> apiKeys = new java.util.ArrayList<>();
+        if (apiKey != null && !apiKey.isBlank()) apiKeys.add(apiKey);
+        for (int i = 2; i <= 5; i++) {
+            String envKey = System.getenv("GEMINI_API_KEY" + i);
+            if (envKey != null && !envKey.isBlank()) apiKeys.add(envKey);
+        }
+
+        ResponseEntity<String> response = null;
+        Exception lastEx = null;
+        for (String keyToTry : apiKeys) {
+            try {
+                System.out.println("[GeminiService] Trying Gemini with key: " + (keyToTry == apiKey ? "primary" : "backup" + keyToTry.substring(Math.max(0, keyToTry.length()-4))));
+                response = restTemplate.postForEntity(GEMINI_URL + "?key=" + keyToTry, request, String.class);
+                if (response.getStatusCode().is2xxSuccessful()) {
+                    break; 
+                } else if (response.getStatusCode().value() == 429) {
+                    // rate limited — try next key
+                    System.out.println("[GeminiService] Key rate-limited, trying next key if available.");
+                    response = null;
+                    continue;
+                } else {
+                    break;
+                }
+            } catch (Exception ex) {
+                lastEx = ex;
+                System.out.println("[GeminiService] Request failed with key, trying next if available: " + ex.getMessage());
+                response = null;
+                continue;
+            }
+        }
+
+        if (response == null) {
+            String details = lastEx != null ? lastEx.getMessage() : "All keys failed or were rate limited";
+            return Map.of("error", "Failed to call Gemini API", "details", details);
+        }
 
         try {
             ObjectMapper mapper = new ObjectMapper();

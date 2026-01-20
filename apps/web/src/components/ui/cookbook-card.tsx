@@ -1,11 +1,12 @@
 "use client";
 
 interface CookbookCardProps {
-  step: number;
+  step?: number;
   title: string;
   subtitle: string;
   ingredients: string[];
   colorScheme: "red" | "orange" | "yellow";
+  frontPaddingClass?: string;
 }
 
 const colorSchemes = {
@@ -44,7 +45,7 @@ const colorSchemes = {
   },
 };
 
-export function CookbookCard({ step, title, subtitle, ingredients, colorScheme }: CookbookCardProps) {
+export function CookbookCard({ step, title, subtitle, ingredients, colorScheme, frontPaddingClass }: CookbookCardProps) {
   const colors = colorSchemes[colorScheme];
   
   return (
@@ -64,8 +65,10 @@ export function CookbookCard({ step, title, subtitle, ingredients, colorScheme }
                 backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
               }}
             />
-            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center relative z-10">
-              <p className={`${colors.textMuted} text-base tracking-[0.2em] uppercase mb-2`}>Step {step}</p>
+              <div className={`flex-1 flex flex-col items-center justify-center p-6 text-center relative z-10 ${frontPaddingClass || ''}`}>
+              {typeof step !== 'undefined' && (
+                <p className={`${colors.textMuted} text-base tracking-[0.2em] uppercase mb-2`}>Step {step}</p>
+              )}
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-8 h-px ${colors.divider}`} />
                 <div className={`w-1.5 h-1.5 rotate-45 ${colors.dividerDot}`} />
@@ -91,7 +94,9 @@ export function CookbookCard({ step, title, subtitle, ingredients, colorScheme }
               fontFamily: 'var(--font-caveat)',
             }}
           >
-            <div className="absolute top-2 right-4 text-amber-300 text-4xl font-bold">{step}</div>
+            {typeof step !== 'undefined' && (
+              <div className="absolute top-2 right-4 text-amber-300 text-4xl font-bold">{step}</div>
+            )}
             <div className="px-6 pt-[32px]">
               <h4 className="text-2xl font-bold text-amber-900 leading-[32px] mb-0">{title}</h4>
               <ul className="text-amber-800 text-lg m-0 p-0">

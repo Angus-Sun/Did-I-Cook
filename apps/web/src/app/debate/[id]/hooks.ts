@@ -133,7 +133,30 @@ export function useDebate(debateId: string): UseDebateResult {
     const fetchDebate = async () => {
       try {
         const response = await fetch(API_BASE);
-        const data = await response.json();
+        const text = await response.text();
+
+        if (!response.ok) {
+          console.error(`Failed to fetch debate: HTTP ${response.status}`, text);
+          // don't attempt to parse non-OK responses
+          setDebate(null);
+          return;
+        }
+
+        if (!text) {
+          console.error("Failed to fetch debate: empty response body");
+          setDebate(null);
+          return;
+        }
+
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (parseErr) {
+          console.error("Failed to parse debate JSON:", parseErr, "responseText:", text);
+          setDebate(null);
+          return;
+        }
+
         setDebate(data);
       } catch (error) {
         console.error("Failed to fetch debate:", error);
