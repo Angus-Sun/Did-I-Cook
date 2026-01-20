@@ -114,7 +114,7 @@ public class GeminiService {
             "}";
 
         String fullPrompt = "Given the following debate, score it using the following JSON format. " +
-            "Replace the placeholder round names in the example JSON with the exact round titles as they appear in the Debate transcript. " +
+            "Replace the placeholder round names in the example JSON with the exact round titles as they appear in the example provided below. " +
             "Do NOT rename, replace, or invent round names (do not output 'phase 0', 'phase 1', 'Round 1', etc.). " +
             "Preserve the original round names exactly (for example: 'Opening Statement', 'Argument', 'Closing Statement'). " +
             "Be concise and fair. Return ONLY valid JSON — no markdown, no commentary, no code block formatting, no explanation, no triple backticks.\n\n" +
@@ -176,7 +176,54 @@ public class GeminiService {
                 text = text.substring(firstBrace, lastBrace + 1);
             }
             JsonNode scoring = mapper.readTree(text);
-            return mapper.convertValue(scoring, Map.class);
+            Map<String, Object> scoringMap = mapper.convertValue(scoring, Map.class);
+            Object roundsObj = scoringMap.get("rounds");
+
+            java.util.List<String> originalRoundTitles = new java.util.ArrayList<>();
+            try {
+                List<Map<String, Object>> phases = (List<Map<String, Object>>) input.get("phases");
+                if (phases != null) {
+                    for (Map<String, Object> ph : phases) {
+                        Object t = ph.get("type");
+                        if (t != null) {
+                            String title = t.toString();
+                            if (!originalRoundTitles.contains(title)) originalRoundTitles.add(title);
+                        }
+                    }
+                }
+            } catch (Exception ignore) {
+                // if we can't build original titles, skip mapping
+            }
+
+                if (roundsObj instanceof List && !originalRoundTitles.isEmpty()) {
+                List<Map<String, Object>> roundsList = (List<Map<String, Object>>) roundsObj;
+                for (int i = 0; i < roundsList.size() && i < originalRoundTitles.size(); i++) {
+                    Map<String, Object> r = roundsList.get(i);
+                    Object nameObj = r.get("name");
+                    if (nameObj != null) {
+                        String name = nameObj.toString().toLowerCase().replaceAll("\\s+", "");
+                        if (name.matches("phase\\d+")) {
+                            r.put("name", originalRoundTitles.get(i));
+                        }
+                    }
+                }
+
+                // Deduplicate rounds by normalized name while preserving order
+                java.util.List<Map<String, Object>> deduped = new java.util.ArrayList<>();
+                java.util.Set<String> seen = new java.util.LinkedHashSet<>();
+                for (Map<String, Object> r : roundsList) {
+                    Object nameObj = r.get("name");
+                    String key = nameObj != null ? nameObj.toString().trim().toLowerCase() : "";
+                    if (!seen.contains(key)) {
+                        seen.add(key);
+                        deduped.add(r);
+                    }
+                }
+
+                scoringMap.put("rounds", deduped);
+            }
+
+            return scoringMap;
         } catch (Exception e) {
             return Map.of("error", "Failed to parse Gemini response", "details", e.getMessage());
         }

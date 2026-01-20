@@ -108,6 +108,60 @@ Notes:
 - Embed using SentenceTransformers and store k-NN vectors in OpenSearch.
 - `apps/worker/semantic_search_api.py` exposes `/search` used by the API to gather evidence chunks for prompts.
 
+### Local RAG setup (step-by-step)
+
+If you want to run the full RAG pipeline locally (OpenSearch + worker + Java API → Gemini), follow these steps:
+
+1. Start OpenSearch (example using Docker):
+
+```bash
+# run a single-node OpenSearch for local testing
+docker run -d --name opensearch -p 9200:9200 -e "discovery.type=single-node" opensearchproject/opensearch:latest
+```
+
+2. Prepare the Python worker environment and install deps:
+
+```bash
+cd apps/worker
+python -m venv .venv
+.venv\Scripts\activate    # Windows
+# or: source .venv/bin/activate  # macOS / Linux
+pip install -r requirements.txt
+```
+
+3. Index your content (populate the OpenSearch index):
+
+```bash
+# from the repo root
+python apps/worker/scripts/index_chunks.py
+```
+
+4. Run the worker FastAPI semantic-search service (keeps running):
+
+```bash
+# from the repo root (uses the module path)
+python -m uvicorn apps.worker.scripts.semantic_search_api:app --reload --host 127.0.0.1 --port 8000
+```
+
+5. Verify the `/search` endpoint returns chunks:
+
+```bash
+curl -s -X POST "http://localhost:8000/search" -H "Content-Type: application/json" -d '{"query":"climate change","top_k":3}' | jq
+```
+
+6. Start the Java API and ensure it can reach the worker on `http://localhost:8000` (the `GeminiService` posts to `/search`). Set Gemini keys and any needed OpenSearch env vars:
+
+```env
+OPENSEARCH_URL=http://localhost:9200
+GEMINI_API_KEY=<your_key_here>
+GEMINI_API_KEY2=<optional_fallback>
+```
+
+Notes:
+- Re-run `index_chunks.py` whenever you add or update source documents to refresh the evidence index.
+- If your worker binds to `127.0.0.1`/`localhost`, the Java API must run on the same machine or be able to reach that host; bind to `0.0.0.0` if you need external access.
+- Keep secrets out of client-side code — the Gemini call should remain server-side (the Java API or worker).
+
 ---
 
 ## Gemini & prompt notes
