@@ -1,15 +1,20 @@
 import os
+from pathlib import Path
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
-DOCS_DIR = "../docs"
+DOCS_DIR = Path(__file__).resolve().parent.parent / "docs"
 CHUNK_SIZE = 300
+
+if not DOCS_DIR.exists():
+    raise FileNotFoundError(f"Docs directory not found: {DOCS_DIR}\nPlease ensure the 'docs' folder exists under apps/worker/docs or run the script from the project repository.")
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 chunks = []
 for frame in os.listdir(DOCS_DIR):
-    with open(os.path.join(DOCS_DIR, frame), encoding='utf-8') as f:
+    path = DOCS_DIR / frame
+    with open(path, encoding='utf-8') as f:
         words = f.read().split()
         for i in range(0, len(words), CHUNK_SIZE):
             chunk = " ".join(words[i:i+CHUNK_SIZE])
