@@ -18,14 +18,38 @@ A real-time, AI-judged debate app where two players debate a topic on video and 
 
 ## Architecture
 
-Architecture (ASCII):
+Mermaid (rendered on GitHub when enabled):
 
-Browser (Next.js + WebRTC) --> Spring Boot API (signals & results)
-    |                          |-> POST /results -> Gemini (LLM)
-    |                          |-> GET /search  -> FastAPI RAG -> OpenSearch (k-NN)
-    |                                             ^
-    |                                             |
-    +---------------------------------------------+  Worker: chunk/embed -> index
+```mermaid
+flowchart LR
+  subgraph Browser
+    A["Next.js web app<br/> (React + WebRTC)"]
+  end
+
+  A -->|REST / WebSocket| B[Spring Boot API]
+  B -->|POST /results| C[Gemini LLM]
+  B -->|GET /search| D[FastAPI RAG]
+  D -->|kNN search| E[OpenSearch index]
+  subgraph Worker
+    F[chunk_and_embed.py / index_chunks.py]
+    F --> E
+    F -->|uploads| E
+  end
+
+  subgraph Infra
+    E
+    C
+  end
+
+  A ---|Signaling| B
+```
+
+ASCII fallback:
+
+Browser (Next.js + WebRTC) -> Spring Boot API (signals & results) -> Gemini (LLM)
+                                         |
+                                         -> FastAPI / OpenSearch (RAG evidence)
+                                         <- Worker (chunk/embed -> index)
 
 ---
 
