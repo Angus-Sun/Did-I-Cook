@@ -40,11 +40,3 @@ Steps
 
 CI / Auto-deploy notes
 - Render supports auto-deploys from GitHub pushes by default. No additional actions needed if `render.yaml` is present.
-
-Costs & limits
-- Render has free and paid plans; background workers typically run on paid plans for persistent workers. Monitor usage.
-- Pinecone has free quota with limits; Supabase or Bonsai may be cheaper depending on usage.
-
-If you want, I can:
-- generate a `render.yaml` with Render secret references instead of placeholder values, or
-- update the worker code to switch to Pinecone and add a migration script to port existing OpenSearch embeddings.

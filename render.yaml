@@ -3,12 +3,20 @@ services:
     name: did-i-cook-api
     env: docker
     branch: main
-    repo: https://github.com/<your-org>/<your-repo>
+    repo: https://github.com/Angus-Sun/Did-I-Cook
     root: apps/api
     dockerfilePath: apps/api/Dockerfile
     plan: starter
     envVars:
       - key: GEMINI_API_KEY
+        value: ""
+      - key: GEMINI_API_KEY2
+        value: ""
+      - key: GEMINI_API_KEY3
+        value: ""
+      - key: GEMINI_API_KEY4
+        value: ""
+      - key: GEMINI_API_KEY5
         value: ""
       - key: OPENSEARCH_URL
         value: ""
@@ -17,7 +25,7 @@ services:
     name: did-i-cook-worker
     env: docker
     branch: main
-    repo: https://github.com/<your-org>/<your-repo>
+    repo: https://github.com/Angus-Sun/Did-I-Cook
     root: apps/worker
     dockerfilePath: apps/worker/Dockerfile
     plan: starter
@@ -26,5 +34,8 @@ services:
         value: ""
       - key: PINECONE_ENV
         value: ""
+      - key: PINECONE_INDEX
+        value: "did-i-cook"
       - key: OPENSEARCH_URL
         value: ""
+
