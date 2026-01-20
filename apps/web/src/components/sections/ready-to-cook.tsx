@@ -32,7 +32,7 @@ export function ReadyToCookSection() {
   const [createName, setCreateName] = useState("");
   const [joinName, setJoinName] = useState("");
 
-  const API_ROOT = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  const API_ROOT = process.env.NEXT_PUBLIC_API_URL || "https://did-i-cook.onrender.com";
 
   const handleCreateRoom = async () => {
     if (!createName.trim()) {
@@ -97,7 +97,7 @@ export function ReadyToCookSection() {
       id="ready-to-cook" 
       className="w-full py-20 bg-gradient-to-b from-white via-amber-50/50 to-orange-50/30 relative overflow-hidden scroll-mt-4"
     >
-      <BackgroundPattern imageUrl="/forkknife.png" />
+      <BackgroundPattern imageUrl="/ForkKnife.png" />
       <FloatingDecorations decorations={readyToCookDecorations} />
       
       <div ref={ref} className="container mx-auto px-4 md:px-6 relative z-10">

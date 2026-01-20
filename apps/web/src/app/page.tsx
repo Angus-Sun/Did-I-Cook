@@ -28,7 +28,7 @@ export default function Home() {
             backgroundPosition: { duration: 10, repeat: Infinity, ease: "linear" }
           }}
           style={{
-            backgroundImage: `url("/forkknife.png")`,
+            backgroundImage: `url("/ForkKnife.png")`,
             backgroundSize: '120px 120px',
             backgroundRepeat: 'repeat',
           }}

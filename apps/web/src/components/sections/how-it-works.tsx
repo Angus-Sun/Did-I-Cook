@@ -57,7 +57,7 @@ export function HowItWorksSection() {
 
   return (
     <section className="w-full py-20 bg-gradient-to-b from-amber-50/80 via-amber-50/50 to-white relative overflow-hidden">
-      <BackgroundPattern imageUrl="/forkknife.png" />
+      <BackgroundPattern imageUrl="/ForkKnife.png" />
       <FloatingDecorations decorations={howItWorksDecorations} />
       
       <div ref={ref} className="container mx-auto px-4 md:px-6 relative z-10">
