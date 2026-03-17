@@ -46,3 +46,4 @@ def search(query: Query):
             'score': match['score']
         }
         for match in response['matches']
+    ]
