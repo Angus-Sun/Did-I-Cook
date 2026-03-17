@@ -49,17 +49,15 @@ public class DebateController {
         Debate debate = debateService.getDebate(id);
         if (debate == null) return Map.of("error", "Debate not found");
 
-        // If already computed, return immediately
         if (resultsCache.containsKey(id)) {
             return resultsCache.get(id);
         }
 
-        // If already running, return pending
         if ("pending".equals(resultStatus.get(id))) {
             return Map.of("status", "pending");
         }
 
-        // Build input for scoring
+        //collect input for later scoring
         List<Map<String, Object>> phases = new java.util.ArrayList<>();
         for (int i = 0; i < debate.getTurns().size(); i++) {
             var turn = debate.getTurns().get(i);
@@ -75,7 +73,7 @@ public class DebateController {
             "player2Name", debate.getPlayer2Name() != null ? debate.getPlayer2Name() : "Player 2"
         );
 
-        // Fire off async evaluation
+        //async evaluation
         resultStatus.put(id, "pending");
         executor.submit(() -> {
             try {
