@@ -3,27 +3,26 @@ from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 from pathlib import Path
 from dotenv import load_dotenv
+from pinecone import Pinecone
 import os
-import numpy as np
-from opensearchpy import OpenSearch
 
 app = FastAPI()
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-# Load .env from apps/worker if present
 env_path = SCRIPT_DIR.parent / '.env'
 if env_path.exists():
     load_dotenv(env_path)
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
-# OpenSearch configuration
-OPENSEARCH_URL = os.getenv('OPENSEARCH_URL', 'http://localhost:9200')
-# OPENSEARCH_URL expected in form http(s)://host:port
-host = OPENSEARCH_URL.replace('http://', '').replace('https://', '').split(':')[0]
-port = int(OPENSEARCH_URL.split(':')[-1]) if ':' in OPENSEARCH_URL else 9200
-client = OpenSearch(hosts=[{"host": host, "port": port}])
-INDEX_NAME = os.getenv('OPENSEARCH_INDEX', 'evidence_chunks')
+PINECONE_API_KEY = os.getenv('PINECONE_API_KEY')
+PINECONE_INDEX = os.getenv('PINECONE_INDEX', 'did-i-cook')
+
+if not PINECONE_API_KEY:
+    raise EnvironmentError('PINECONE_API_KEY not set')
+
+pc = Pinecone(api_key=PINECONE_API_KEY)
+index = pc.Index(PINECONE_INDEX)
 
 
 class Query(BaseModel):
@@ -31,29 +30,19 @@ class Query(BaseModel):
     top_k: int = 5
 
 
+@app.get('/health')
+def health():
+    return {'status': 'ok'}
+
+
 @app.post('/search')
 def search(query: Query):
-    embedding = model.encode(query.query)
-
-    script_query = {
-        'size': query.top_k,
-        'query': {
-            'knn': {
-                'embedding': {
-                    'vector': embedding.tolist(),
-                    'k': query.top_k
-                }
-            }
-        }
-    }
-
-    response = client.search(index=INDEX_NAME, body=script_query)
+    embedding = model.encode(query.query).tolist()
+    response = index.query(vector=embedding, top_k=query.top_k, include_metadata=True)
     results = [
         {
-            'text': hit['_source'].get('text'),
-            'source': hit['_source'].get('source'),
-            'score': hit.get('_score')
+            'text': match['metadata'].get('text'),
+            'source': match['metadata'].get('source'),
+            'score': match['score']
         }
-        for hit in response['hits']['hits']
-    ]
-    return {'results': results}
+        for match in response['matches']

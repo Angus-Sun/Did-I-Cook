@@ -17,6 +17,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class GeminiService {
     @Value("${gemini.api-key}")
     private String apiKey;
+    @Value("${worker.url:http://localhost:8000}")
+    private String workerUrl;
     private final RestTemplate restTemplate = new RestTemplate();
     private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
@@ -285,7 +287,7 @@ public class GeminiService {
 
     public List<String> getEvidenceChunks(String debateTurn, int topK) {
         RestTemplate restTemplate = new RestTemplate();
-        String url = "http://localhost:8000/search";
+        String url = workerUrl + "/search";
         ObjectMapper mapper = new ObjectMapper();
         String requestJson = "";
         try {

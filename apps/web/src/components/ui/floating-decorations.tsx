@@ -1,7 +1,10 @@
 "use client";
 
 interface FloatingDecoration {
-  emoji: string;
+  // either `emoji` (legacy) or `image` (public path) may be provided
+  emoji?: string;
+  image?: string;
+  imageClass?: string;
   position: string;
   rotation?: string;
   size?: string;
@@ -21,7 +24,12 @@ export function FloatingDecorations({ decorations }: FloatingDecorationsProps) {
           key={index}
           className={`absolute ${decoration.position} ${decoration.size || 'text-3xl'} ${decoration.opacity || 'opacity-15'} ${decoration.rotation || ''} ${decoration.animate ? 'animate-pulse' : ''}`}
         >
-          {decoration.emoji}
+          {decoration.image ? (
+            // use a plain img to avoid next/image constraints in components
+            <img src={decoration.image} alt="decor" className={`${decoration.imageClass || 'w-8 h-8'} inline-block`} />
+          ) : (
+            decoration.emoji
+          )}
         </div>
       ))}
     </>

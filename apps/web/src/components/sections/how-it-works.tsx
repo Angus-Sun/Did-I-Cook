@@ -6,10 +6,10 @@ import { CookbookCard } from "@/components/ui";
 import { BackgroundPattern, FloatingDecorations } from "@/components/ui";
 
 const howItWorksDecorations = [
-  { emoji: "📖", position: "top-16 left-[8%]", size: "text-4xl", opacity: "opacity-20", rotation: "rotate-12", animate: true },
-  { emoji: "✏️", position: "top-28 right-[12%]", size: "text-3xl", opacity: "opacity-15", rotation: "-rotate-12" },
-  { emoji: "💡", position: "bottom-20 left-[10%]", size: "text-3xl", opacity: "opacity-15", rotation: "rotate-6" },
-  { emoji: "⭐", position: "bottom-12 right-[5%]", size: "text-3xl", opacity: "opacity-15", rotation: "-rotate-6", animate: true },
+  { image: "/fries.png", imageClass: "w-12 h-12", position: "top-16 left-[8%]", opacity: "opacity-20", rotation: "rotate-12", animate: true },
+  { image: "/meat.png", imageClass: "w-10 h-10", position: "top-28 right-[12%]", opacity: "opacity-15", rotation: "-rotate-12" },
+  { image: "/microphone.png", imageClass: "w-10 h-10", position: "bottom-20 left-[10%]", opacity: "opacity-15", rotation: "rotate-6" },
+  { image: "/speaking.png", imageClass: "w-10 h-10", position: "bottom-12 right-[5%]", opacity: "opacity-15", rotation: "-rotate-6", animate: true },
 ];
 
 const steps = [
