@@ -36,18 +36,26 @@ export default function DebateRoom() {
   
   useEffect(() => {
     if (debate && debate.status === "judging") {
-      console.log("Fetching results for debate", debateId);
-        const API_ROOT = process.env.NEXT_PUBLIC_API_URL || "https://did-i-cook.onrender.com";
-        fetch(`${API_ROOT}/api/debates/${debateId}/results`)
-        .then(res => res.json())
-        .then(data => {
-          console.log("Results fetched:", data);
-          setResults(data);
-        })
-        .catch(error => {
-          console.error("Failed to fetch results:", error);
-          setResults(null);
-        });
+      const API_ROOT = process.env.NEXT_PUBLIC_API_URL || "https://did-i-cook.onrender.com";
+
+      // Kick off async evaluation (returns immediately with {status:"pending"})
+      fetch(`${API_ROOT}/api/debates/${debateId}/results`).catch(() => {});
+
+      // Poll /results/status every 3s until done
+      const pollInterval = setInterval(async () => {
+        try {
+          const res = await fetch(`${API_ROOT}/api/debates/${debateId}/results/status`);
+          const data = await res.json();
+          if (data.status === "done") {
+            clearInterval(pollInterval);
+            setResults(data);
+          }
+        } catch (error) {
+          console.error("Failed to poll results:", error);
+        }
+      }, 3000);
+
+      return () => clearInterval(pollInterval);
     }
   }, [debateId, debate?.status]);
   

@@ -2,6 +2,9 @@ package com.didicook.api.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,6 +23,9 @@ public class DebateController {
 
     private final DebateService debateService;
     private final com.didicook.api.service.GeminiService geminiService;
+    private final ExecutorService executor = Executors.newCachedThreadPool();
+    private final ConcurrentHashMap<String, Map<String, Object>> resultsCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, String> resultStatus = new ConcurrentHashMap<>();
 
     public DebateController(DebateService debateService, com.didicook.api.service.GeminiService geminiService) {
         this.debateService = debateService;
@@ -32,19 +38,28 @@ public class DebateController {
         return debateService.createDebate(topic);
     }
 
-    // get a debate
     @GetMapping("/{id}")
     public Debate getDebate(@PathVariable String id) {
         return debateService.getDebate(id);
     }
+
     @GetMapping("/{id}/results")
     public Map<String, Object> getDebateResults(@PathVariable String id) {
-        System.out.println("[DebateController] /results endpoint called for debate " + id);
+        System.out.println("[DebateController] /results called for debate " + id);
         Debate debate = debateService.getDebate(id);
-        if (debate == null) {
-            System.out.println("[DebateController] Debate not found: " + id);
-            return Map.of("error", "Debate not found");
+        if (debate == null) return Map.of("error", "Debate not found");
+
+        // If already computed, return immediately
+        if (resultsCache.containsKey(id)) {
+            return resultsCache.get(id);
         }
+
+        // If already running, return pending
+        if ("pending".equals(resultStatus.get(id))) {
+            return Map.of("status", "pending");
+        }
+
+        // Build input for scoring
         List<Map<String, Object>> phases = new java.util.ArrayList<>();
         for (int i = 0; i < debate.getTurns().size(); i++) {
             var turn = debate.getTurns().get(i);
@@ -59,11 +74,36 @@ public class DebateController {
             "player1Name", debate.getPlayer1Name() != null ? debate.getPlayer1Name() : "Player 1",
             "player2Name", debate.getPlayer2Name() != null ? debate.getPlayer2Name() : "Player 2"
         );
-        System.out.println("[DebateController] Calling GeminiService.scoreDebate for debate " + id);
-        Map<String, Object> result = geminiService.scoreDebate(input);
-        System.out.println("[DebateController] GeminiService.scoreDebate returned for debate " + id);
-        return result;
+
+        // Fire off async evaluation
+        resultStatus.put(id, "pending");
+        executor.submit(() -> {
+            try {
+                System.out.println("[DebateController] Async Gemini scoring started for debate " + id);
+                Map<String, Object> result = geminiService.scoreDebate(input);
+                resultsCache.put(id, result);
+                resultStatus.put(id, "done");
+                System.out.println("[DebateController] Async Gemini scoring done for debate " + id);
+            } catch (Exception e) {
+                resultStatus.put(id, "error");
+                System.out.println("[DebateController] Async Gemini scoring failed for debate " + id + ": " + e.getMessage());
+            }
+        });
+
+        return Map.of("status", "pending");
     }
+
+    @GetMapping("/{id}/results/status")
+    public Map<String, Object> getResultsStatus(@PathVariable String id) {
+        String status = resultStatus.getOrDefault(id, "pending");
+        if ("done".equals(status) && resultsCache.containsKey(id)) {
+            Map<String, Object> full = new java.util.HashMap<>(resultsCache.get(id));
+            full.put("status", "done");
+            return full;
+        }
+        return Map.of("status", status);
+    }
+
     @PostMapping("/{id}/turns")
     public Turn addTurn(@PathVariable String id, @RequestBody Map<String, String> body) {
         String argument = body.get("argument");
