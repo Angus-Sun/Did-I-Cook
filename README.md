@@ -1,6 +1,6 @@
 # Did-I-Cook? 
 
-A real-time, AI-judged debate app where two players debate a topic on video and an AI (Gemini) scores them with evidence-backed reasoning using a RAG pipeline (OpenSearch + embeddings). The project includes a Next.js frontend, a Spring Boot backend (API + signaling), and Python worker scripts to chunk/embed and index evidence into OpenSearch. BIG THANKS to Kaelyn Cho for her amazing artwork she's provided for this project <:
+A real-time, AI-judged debate app where two players debate a topic on video and an AI (Gemini) scores them with evidence-backed reasoning using a RAG pipeline (Pinecone + sentence embeddings). The project includes a Next.js frontend, a Spring Boot backend (API + signaling), and a deployed FastAPI worker for semantic search. BIG THANKS to Kaelyn Cho for her amazing artwork she's provided for this project <:
 
 ---
 
@@ -20,112 +20,71 @@ A real-time, AI-judged debate app where two players debate a topic on video and 
 
 - Frontend: Next.js (App Router), React, Tailwind CSS, Framer Motion, react-confetti
 - Backend: Spring Boot (Java 21), REST controllers, WebRTC signaling
-- RAG worker: Python, FastAPI, HuggingFace SentenceTransformers (all-MiniLM-*), OpenSearch (k-NN)
-- LLM: Google Gemini (via REST) with prompt → JSON parsing
+- RAG worker: Python, FastAPI, HuggingFace SentenceTransformers (`all-MiniLM-L6-v2`), Pinecone vector DB
+- LLM: Google Gemini 2.5 Flash (via REST) with strict JSON schema validation
 
 ---
 
 ## Local development
 
-Prereqs: Node.js, Java 21 + Maven, Python 3.11+, OpenSearch (or remote), Git
+Prereqs: Node.js, Java 21 + Maven, Python 3.11+, Git
 
-1. Frontend (apps/web)
-   - cd apps/web
-   - npm install
-   - npm run dev
-   - Open http://localhost:3000
+1. **Frontend** (`apps/web`)
+   ```bash
+   cd apps/web
+   npm install
+   npm run dev
+   # Open http://localhost:3000
+   ```
 
-2. Backend API (apps/api)
-   - cd apps/api
-   - mvn spring-boot:run
-   - Config via `src/main/resources/application.properties` (or environment vars)
+2. **Backend API** (`apps/api`)
+   ```bash
+   cd apps/api
+   mvn spring-boot:run
+   ```
+   Set env vars (create `apps/api/.env` or export):
+   ```env
+   GEMINI_API_KEY=<your_key>
+   WORKER_URL=http://localhost:8000   # or deployed worker URL
+   ```
 
-3. Worker / RAG (apps/worker)
-   - python -m venv .venv
-   - .venv\Scripts\activate (. ./venv/bin/activate on mac/linux)
-   - pip install -r requirements.txt
-   - uvicorn semantic_search_api:app --reload --port 8000
-   - Use scripts in `apps/worker/scripts/` to chunk, embed, and index to OpenSearch
-
-Environment variables (examples):
-
-```env
-# Gemini
-GEMINI_API_KEY=<primary>
-GEMINI_API_KEY2=<fallback>
-# OpenSearch (for worker/fastapi)
-OPENSEARCH_URL=http://localhost:9200
-OPENSEARCH_USER=admin
-OPENSEARCH_PASS=admin
-```
-
-Notes:
-- The app will POST to `/api/debates/:id/results` to trigger scoring and RAG evidence retrieval.
-- Use the RAG scripts to populate an OpenSearch index before relying on key-evidence output.
+3. **Worker** (`apps/worker`) — optional for local, already deployed to Render
+   ```bash
+   cd apps/worker
+   python -m venv .venv
+   .venv\Scripts\activate      # Windows
+   # source .venv/bin/activate # macOS/Linux
+   pip install -r requirements.txt
+   uvicorn scripts.semantic_search_api:app --reload --port 8000
+   ```
+   Set env vars in `apps/worker/.env`:
+   ```env
+   PINECONE_API_KEY=<your_key>
+   PINECONE_INDEX=did-i-cook
+   ```
 
 ---
 
 ## RAG pipeline
 
-- Chunk documents (PDFs, text) with `chunk_and_embed.py` or `index_chunks.py`.
-- Embed using SentenceTransformers and store k-NN vectors in OpenSearch.
-- `apps/worker/semantic_search_api.py` exposes `/search` used by the API to gather evidence chunks for prompts.
+Evidence retrieval uses Pinecone as a managed vector database — no local infrastructure needed.
 
-### Local RAG setup (step-by-step)
+**How it works:**
+1. Source documents in `apps/worker/docs/` (21 articles across 5 debate topics) are split into 300-word chunks
+2. Each chunk is embedded into a 384-dim vector using `all-MiniLM-L6-v2`
+3. Vectors are stored in Pinecone (one-time setup)
+4. At debate end, the transcript is embedded and Pinecone returns the top-5 most semantically similar chunks
+5. Those chunks are injected into the Gemini prompt to ground scoring in real evidence
 
-If you want to run the full RAG pipeline locally (OpenSearch + worker + Java API → Gemini), follow these steps:
-
-1. Start OpenSearch (example using Docker):
-
-```bash
-# run a single-node OpenSearch for local testing
-docker run -d --name opensearch -p 9200:9200 -e "discovery.type=single-node" opensearchproject/opensearch:latest
-```
-
-2. Prepare the Python worker environment and install deps:
+**One-time index setup** (only needed if adding new documents or setting up from scratch):
 
 ```bash
 cd apps/worker
-python -m venv .venv
-.venv\Scripts\activate    # Windows
-# or: source .venv/bin/activate  # macOS / Linux
 pip install -r requirements.txt
+# ensure PINECONE_API_KEY and PINECONE_INDEX are set in apps/worker/.env
+python scripts/chunk_and_embed.py   # generates chunks_and_embeddings.pkl
+python scripts/index_chunks.py      # uploads to Pinecone
 ```
-
-3. Index your content (populate the OpenSearch index):
-
-```bash
-# from the repo root
-python apps/worker/scripts/index_chunks.py
-```
-
-4. Run the worker FastAPI semantic-search service (keeps running):
-
-```bash
-# from the repo root (uses the module path)
-python -m uvicorn apps.worker.scripts.semantic_search_api:app --reload --host 127.0.0.1 --port 8000
-```
-
-5. Verify the `/search` endpoint returns chunks:
-
-```bash
-curl -s -X POST "http://localhost:8000/search" -H "Content-Type: application/json" -d '{"query":"climate change","top_k":3}' | jq
-```
-
-6. Start the Java API and ensure it can reach the worker on `http://localhost:8000` (the `GeminiService` posts to `/search`). Set Gemini keys and any needed OpenSearch env vars:
-
-```env
-OPENSEARCH_URL=http://localhost:9200
-GEMINI_API_KEY=<your_key_here>
-GEMINI_API_KEY2=<optional_fallback>
-```
-
-Notes:
-- Re-run `index_chunks.py` whenever you add or update source documents to refresh the evidence index.
-- If your worker binds to `127.0.0.1`/`localhost`, the Java API must run on the same machine or be able to reach that host; bind to `0.0.0.0` if you need external access.
-- Keep secrets out of client-side code — the Gemini call should remain server-side (the Java API or worker).
-
----
 
 ## Gemini & prompt notes
 
